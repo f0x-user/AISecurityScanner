@@ -5,7 +5,6 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.aisecurity.scanner.data.repository.ScanRepository
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.domain.scanner.SecurityScanManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -20,7 +19,7 @@ class AutoScanWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return runCatching {
-            val result = scanManager.startScan(ScanDepth.STANDARD)
+            val result = scanManager.startScan()
             scanRepository.saveScan(result)
             Result.success()
         }.getOrElse {
