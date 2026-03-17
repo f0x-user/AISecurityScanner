@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(cmd.exe /c \"gradlew.bat assembleDebug 2>&1\" | tail -100)",
+      "Bash(cmd.exe /c \"cd C:\\\\\\\\Users\\\\\\\\nino\\\\\\\\AndroidStudioProjects\\\\\\\\AISecurityScanner && gradlew.bat assembleDebug 2>&1\")",
+      "Bash(cmd.exe /c \"C:\\\\\\\\Users\\\\\\\\nino\\\\\\\\AndroidStudioProjects\\\\\\\\AISecurityScanner\\\\\\\\gradlew.bat assembleDebug\" 2>&1)",
+      "Bash(./gradlew clean:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

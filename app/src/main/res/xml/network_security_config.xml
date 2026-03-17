@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Kein Klartext-HTTP-Traffic erlaubt -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Nur System-CAs vertrauen -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- NVD API – NIST -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">services.nvd.nist.gov</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- CISA KEV API -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">www.cisa.gov</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- OSV.dev API -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">api.osv.dev</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Android Security Bulletin -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">source.android.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

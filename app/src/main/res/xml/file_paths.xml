@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Debug-Log-Dateien: /sdcard/Android/data/<package>/files/debug/ -->
+    <external-files-path
+        name="debug_logs"
+        path="debug/" />
+    <!-- Fallback: interner Speicher -->
+    <files-path
+        name="debug_logs_internal"
+        path="debug/" />
+</paths>

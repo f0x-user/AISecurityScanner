@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Shield icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 L30,32 L30,54 C30,67.25 40.5,79.7 54,83 C67.5,79.7 78,67.25 78,54 L78,32 Z" />
+    <!-- Lock body -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M46,52 L62,52 L62,64 L46,64 Z" />
+    <!-- Lock shackle -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M50,52 L50,47 C50,44.24 52.24,42 55,42 C57.76,42 60,44.24 60,47 L60,52"
+        android:strokeColor="#1A237E"
+        android:strokeWidth="3"
+        android:fillAlpha="0" />
+</vector>

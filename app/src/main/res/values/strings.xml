@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Security Scanner</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Willkommen beim AI Security Scanner</string>
+    <string name="onboarding_welcome_subtitle">Schütze dein Gerät mit professioneller Sicherheitsanalyse</string>
+    <string name="onboarding_usage_stats_title">Nutzungsstatistiken</string>
+    <string name="onboarding_usage_stats_reason">Warum brauchen wir das? Diese Berechtigung erlaubt uns, verdächtige App-Aktivitäten und ungewöhnlichen Datenverbrauch zu erkennen.</string>
+    <string name="onboarding_usage_stats_deny">Was passiert ohne diese Berechtigung? Modul 7 (Malware-Erkennung) kann keine Hintergrundaktivitäten analysieren.</string>
+    <string name="onboarding_notifications_title">Benachrichtigungen</string>
+    <string name="onboarding_notifications_reason">Warum brauchen wir das? Wir informieren dich sofort, wenn kritische Schwachstellen für dein Gerät gefunden werden.</string>
+    <string name="onboarding_notifications_deny">Was passiert ohne diese Berechtigung? Du erhältst keine Echtzeit-Warnungen bei neuen Zero-Days.</string>
+    <string name="onboarding_btn_grant">Berechtigung erteilen</string>
+    <string name="onboarding_btn_skip">Überspringen</string>
+    <string name="onboarding_btn_next">Weiter</string>
+    <string name="onboarding_btn_start_scan">Ersten Scan starten</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Sicherheits-Dashboard</string>
+    <string name="home_security_score">Sicherheits-Score</string>
+    <string name="home_last_scan">Letzter Scan</string>
+    <string name="home_never_scanned">Noch kein Scan durchgeführt</string>
+    <string name="home_quick_scan">Schnell-Scan</string>
+    <string name="home_full_scan">Vollständiger Scan</string>
+    <string name="home_btn_scan_now">Jetzt scannen</string>
+    <string name="home_critical_issues">Kritische Probleme</string>
+    <string name="home_update_db">Datenbank aktualisieren</string>
+
+    <!-- Scan Screen -->
+    <string name="scan_title">Scan läuft</string>
+    <string name="scan_initializing">Initialisierung…</string>
+    <string name="scan_system_info">Systeminfo wird analysiert…</string>
+    <string name="scan_app_permissions">App-Berechtigungen werden geprüft…</string>
+    <string name="scan_network">Netzwerksicherheit wird analysiert…</string>
+    <string name="scan_device_hardening">Gerätesicherheit wird geprüft…</string>
+    <string name="scan_storage">Speicher wird analysiert…</string>
+    <string name="scan_zero_day">Zero-Day-Korrelation läuft…</string>
+    <string name="scan_malware">Malware-Indikatoren werden gesucht…</string>
+    <string name="scan_complete">Scan abgeschlossen</string>
+    <string name="scan_cancel">Scan abbrechen</string>
+
+    <!-- Results Screen -->
+    <string name="results_title">Scan-Ergebnisse</string>
+    <string name="results_filter_all">Alle</string>
+    <string name="results_filter_critical">Kritisch</string>
+    <string name="results_filter_high">Hoch</string>
+    <string name="results_filter_medium">Mittel</string>
+    <string name="results_filter_low">Niedrig</string>
+    <string name="results_sort_severity">Schweregrad</string>
+    <string name="results_sort_cvss">CVSS-Score</string>
+    <string name="results_sort_date">Datum</string>
+    <string name="results_zero_day_badge">Zero-Day</string>
+    <string name="results_actively_exploited">Aktiv ausgenutzt</string>
+    <string name="results_no_issues">Keine Sicherheitsprobleme gefunden</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_overview">Übersicht</string>
+    <string name="detail_remediation">Behebung</string>
+    <string name="detail_references">Referenzen</string>
+    <string name="detail_cvss_score">CVSS-Score</string>
+    <string name="detail_cvss_vector">CVSS-Vektor</string>
+    <string name="detail_affected_component">Betroffene Komponente</string>
+    <string name="detail_patch_available">Patch verfügbar</string>
+    <string name="detail_patch_eta">Patch ETA</string>
+    <string name="detail_source">Quelle</string>
+    <string name="detail_remediation_steps">Behebungsschritte</string>
+    <string name="detail_estimated_time">Geschätzte Zeit</string>
+    <string name="detail_open_settings">Einstellungen öffnen</string>
+    <string name="detail_open_docs">Dokumentation öffnen</string>
+
+    <!-- History Screen -->
+    <string name="history_title">Scan-Verlauf</string>
+    <string name="history_no_scans">Noch keine Scans durchgeführt</string>
+    <string name="history_delete_confirm">Diesen Scan-Eintrag wirklich löschen?</string>
+    <string name="history_delete">Löschen</string>
+    <string name="history_trend_improving">Verbesserung</string>
+    <string name="history_trend_worsening">Verschlechterung</string>
+    <string name="history_trend_stable">Stabil</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_appearance">Darstellung</string>
+    <string name="settings_theme">Farbschema</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_theme_amoled">AMOLED</string>
+    <string name="settings_dynamic_color">Dynamische Farben (Android 12+)</string>
+    <string name="settings_scan">Scan-Einstellungen</string>
+    <string name="settings_scan_depth">Scan-Tiefe</string>
+    <string name="settings_auto_scan">Automatischer Scan</string>
+    <string name="settings_notifications">Benachrichtigungen</string>
+    <string name="settings_critical_alerts">Kritische Warnungen</string>
+    <string name="settings_weekly_report">Wöchentlicher Bericht</string>
+    <string name="settings_new_cve_alerts">Neue CVE-Warnungen</string>
+    <string name="settings_database">Datenbank</string>
+    <string name="settings_auto_update">Automatische Updates</string>
+    <string name="settings_offline_mode">Offline-Modus</string>
+    <string name="settings_privacy">Datenschutz</string>
+    <string name="settings_anonymous_telemetry">Anonyme Telemetrie (opt-in)</string>
+    <string name="settings_local_only">Nur lokale Prüfungen</string>
+    <string name="settings_encrypt_local">Lokale Daten verschlüsseln</string>
+    <string name="settings_export">Export</string>
+    <string name="settings_export_format">Export-Format</string>
+
+    <!-- Severity Labels -->
+    <string name="severity_critical">KRITISCH</string>
+    <string name="severity_high">HOCH</string>
+    <string name="severity_medium">MITTEL</string>
+    <string name="severity_low">NIEDRIG</string>
+    <string name="severity_info">INFO</string>
+
+    <!-- General -->
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel">Abbrechen</string>
+    <string name="btn_retry">Erneut versuchen</string>
+    <string name="btn_export">Exportieren</string>
+    <string name="error_network">Netzwerkfehler. Bitte Verbindung prüfen.</string>
+    <string name="error_generic">Fehler aufgetreten. Bitte erneut versuchen.</string>
+    <string name="loading">Wird geladen…</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+
+    <!-- Accessibility -->
+    <string name="cd_security_score_gauge">Sicherheits-Score-Anzeige: %1$d von 100</string>
+    <string name="cd_severity_icon">Schweregrad-Symbol: %1$s</string>
+    <string name="cd_scan_progress">Scan-Fortschritt: %1$d Prozent</string>
+    <string name="cd_back_button">Zurück</string>
+    <string name="cd_filter_button">Filter: %1$s</string>
+</resources>
