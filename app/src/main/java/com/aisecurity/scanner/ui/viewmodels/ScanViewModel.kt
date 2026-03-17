@@ -3,7 +3,6 @@ package com.aisecurity.scanner.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aisecurity.scanner.data.repository.ScanRepository
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.domain.model.ScanProgress
 import com.aisecurity.scanner.domain.model.ScanResult
 import com.aisecurity.scanner.domain.model.ScanStatus
@@ -30,13 +29,13 @@ class ScanViewModel @Inject constructor(
 
     private var scanJob: Job? = null
 
-    fun startScan(depth: ScanDepth) {
+    fun startScan() {
         if (progress.value.status == ScanStatus.RUNNING) return
         scanJob = viewModelScope.launch {
             _error.value = null
             _scanResult.value = null
             runCatching {
-                val result = scanManager.startScan(depth)
+                val result = scanManager.startScan()
                 scanRepository.saveScan(result)
                 _scanResult.value = result
             }.onFailure { e ->

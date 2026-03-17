@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.aisecurity.scanner.domain.model.ScanDepth
+
 import com.aisecurity.scanner.ui.screens.*
 
 @Composable
@@ -27,8 +27,8 @@ fun AppNavGraph(startDestination: String = Screen.Onboarding.route) {
 
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToScan = { depth ->
-                    navController.navigate(Screen.Scan.createRoute(depth.name))
+                onNavigateToScan = {
+                    navController.navigate(Screen.Scan.route)
                 },
                 onNavigateToResults = { scanId ->
                     navController.navigate(Screen.Results.createRoute(scanId))
@@ -38,14 +38,8 @@ fun AppNavGraph(startDestination: String = Screen.Onboarding.route) {
             )
         }
 
-        composable(
-            route = Screen.Scan.route,
-            arguments = listOf(navArgument("scanDepth") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val depthName = backStackEntry.arguments?.getString("scanDepth") ?: ScanDepth.STANDARD.name
-            val depth = runCatching { ScanDepth.valueOf(depthName) }.getOrDefault(ScanDepth.STANDARD)
+        composable(route = Screen.Scan.route) {
             ScanScreen(
-                scanDepth = depth,
                 onScanComplete = { scanId ->
                     navController.navigate(Screen.Results.createRoute(scanId)) {
                         popUpTo(Screen.Home.route)

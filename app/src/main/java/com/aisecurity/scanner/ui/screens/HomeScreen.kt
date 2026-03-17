@@ -1,7 +1,6 @@
 package com.aisecurity.scanner.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aisecurity.scanner.R
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.ui.components.ScoreGauge
 import com.aisecurity.scanner.ui.viewmodels.HomeViewModel
 import java.time.format.DateTimeFormatter
@@ -28,7 +26,7 @@ import java.time.format.FormatStyle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToScan: (ScanDepth) -> Unit,
+    onNavigateToScan: () -> Unit,
     onNavigateToResults: (String) -> Unit,
     onNavigateToHistory: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -158,63 +156,25 @@ fun HomeScreen(
                 }
             }
 
-            // Quick Actions
-            Text(
-                text = "Scan starten",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Scan starten
+            Button(
+                onClick = onNavigateToScan,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
             ) {
-                Button(
-                    onClick = { onNavigateToScan(ScanDepth.QUICK) },
-                    modifier = Modifier.weight(1f).semantics {
-                        contentDescription = "Schnell-Scan starten (ca. 2 Minuten): kritische OS-, ADB- und WLAN-Prüfungen"
-                    }
-                ) {
-                    Icon(Icons.Default.FlashOn, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Schnell (2 min)")
-                }
-                OutlinedButton(
-                    onClick = { onNavigateToScan(ScanDepth.STANDARD) },
-                    modifier = Modifier.weight(1f).semantics {
-                        contentDescription = "Standard-Scan starten (ca. 5 Minuten): OS, Apps, Netzwerk, Gerät, Speicher + Zero-Day-CVEs"
-                    }
-                ) {
-                    Icon(Icons.Default.Shield, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Standard (5 min)")
-                }
-            }
-            OutlinedButton(
-                onClick = { onNavigateToScan(ScanDepth.DEEP) },
-                modifier = Modifier.fillMaxWidth().semantics {
-                    contentDescription = "Tiefen-Scan starten (ca. 15 Minuten): vollständige Analyse inkl. Kernel, Privacy und Medium-CVEs"
-                }
-            ) {
-                Icon(Icons.Default.Search, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Tiefen-Scan (15 min) – Kernel, Root, Privacy, CVE≥4.0")
-            }
-            OutlinedButton(
-                onClick = { onNavigateToScan(ScanDepth.FORENSIC) },
-                modifier = Modifier.fillMaxWidth().semantics {
-                    contentDescription = "Forensik-Scan starten (ca. 30 Minuten): maximale Tiefe mit Frida-Erkennung, Logcat-Analyse und allen CVEs"
-                },
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                Icon(Icons.Default.Shield, null, Modifier.size(22.dp))
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "Vollständigen Scan starten",
+                    style = MaterialTheme.typography.titleSmall
                 )
-            ) {
-                Icon(Icons.Default.BugReport, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Forensisch (30 min) – Frida, Logcat, alle CVEs")
             }
+            Text(
+                text = "Prüft alle 8 Module: System, Apps, Netzwerk, Gerätehärtung, Speicher, Zero-Days, Malware & Privacy",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             // Datenbank-Update
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {

@@ -3,9 +3,7 @@ package com.aisecurity.scanner.ui.navigation
 sealed class Screen(val route: String) {
     object Onboarding : Screen("onboarding")
     object Home : Screen("home")
-    object Scan : Screen("scan/{scanDepth}") {
-        fun createRoute(scanDepth: String) = "scan/$scanDepth"
-    }
+    object Scan : Screen("scan")
     object Results : Screen("results/{scanId}") {
         fun createRoute(scanId: String) = "results/$scanId"
     }

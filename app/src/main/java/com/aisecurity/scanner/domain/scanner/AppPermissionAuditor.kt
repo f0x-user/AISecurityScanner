@@ -33,7 +33,7 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
         "android.permission.ACTIVITY_RECOGNITION"
     )
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.STANDARD): Pair<List<VulnerabilityEntry>, List<AppAudit>> =
+    suspend fun scan(): Pair<List<VulnerabilityEntry>, List<AppAudit>> =
         withContext(Dispatchers.IO) {
             val pm = context.packageManager
             val packages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -48,7 +48,7 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
             }
 
             val audits = packages.map { buildAudit(pm, it) }
-            val vulnerabilities = buildVulnerabilityList(audits, depth)
+            val vulnerabilities = buildVulnerabilityList(audits)
             Pair(vulnerabilities, audits)
         }
 
@@ -145,18 +145,10 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
         )
     }
 
-    private fun buildVulnerabilityList(audits: List<AppAudit>, depth: ScanDepth): List<VulnerabilityEntry> {
+    private fun buildVulnerabilityList(audits: List<AppAudit>): List<VulnerabilityEntry> {
         val findings = mutableListOf<VulnerabilityEntry>()
 
-        // Sideloaded-Schwellwert je nach Scan-Tiefe: Je tiefer, desto mehr Apps werden gemeldet
-        val sideloadedRiskThreshold = when (depth) {
-            ScanDepth.QUICK    -> 30  // Nur sehr riskante sideloaded Apps
-            ScanDepth.STANDARD -> 20  // Mäßig riskante
-            ScanDepth.DEEP     -> 10  // Auch niedrig riskante
-            ScanDepth.FORENSIC -> 0   // Alle sideloaded Apps, egal wie niedrig der Score
-        }
-
-        // ALLE Tiefen: Device-Admin prüfen (immer kritisch)
+        // Device-Admin prüfen (immer kritisch)
         val deviceAdminApps = audits.filter { it.hasDeviceAdminRights }
         if (deviceAdminApps.isNotEmpty()) {
             findings += VulnerabilityEntry(
@@ -186,11 +178,10 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
             )
         }
 
-        // STANDARD+: Accessibility-Apps prüfen
-        if (depth != ScanDepth.QUICK) {
-            val accessibilityApps = audits.filter { it.hasAccessibilityPermission }
-            if (accessibilityApps.isNotEmpty()) {
-                findings += VulnerabilityEntry(
+        // Accessibility-Apps prüfen
+        val accessibilityApps = audits.filter { it.hasAccessibilityPermission }
+        if (accessibilityApps.isNotEmpty()) {
+            findings += VulnerabilityEntry(
                     id = "APP-002",
                     title = "${accessibilityApps.size} App(s) mit Accessibility-Berechtigung",
                     severity = Severity.MEDIUM,
@@ -215,16 +206,14 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                     ),
                     source = "AppPermissionAuditor"
                 )
-            }
         }
 
-        // DEEP+: Apps mit übermäßig vielen Berechtigungen melden
-        if (depth == ScanDepth.DEEP || depth == ScanDepth.FORENSIC) {
-            val permissionHeavyApps = audits.filter {
-                it.dangerousPermissions.size >= 7 && !it.hasDeviceAdminRights
-            }
-            if (permissionHeavyApps.isNotEmpty()) {
-                findings += VulnerabilityEntry(
+        // Apps mit übermäßig vielen Berechtigungen melden
+        val permissionHeavyApps = audits.filter {
+            it.dangerousPermissions.size >= 7 && !it.hasDeviceAdminRights
+        }
+        if (permissionHeavyApps.isNotEmpty()) {
+            findings += VulnerabilityEntry(
                     id = "APP-004",
                     title = "${permissionHeavyApps.size} App(s) mit ≥7 gefährlichen Berechtigungen",
                     severity = Severity.MEDIUM,
@@ -250,14 +239,12 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                     ),
                     source = "AppPermissionAuditor"
                 )
-            }
         }
 
-        // FORENSIC: Debug-Build-Apps melden
-        if (depth == ScanDepth.FORENSIC) {
-            val debugApps = audits.filter { it.isDebugBuild && it.isSideloaded }
-            if (debugApps.isNotEmpty()) {
-                findings += VulnerabilityEntry(
+        // Sideloaded Debug-Build-Apps melden
+        val debugApps = audits.filter { it.isDebugBuild && it.isSideloaded }
+        if (debugApps.isNotEmpty()) {
+            findings += VulnerabilityEntry(
                     id = "APP-005",
                     title = "${debugApps.size} sideloaded Debug-Build-App(s) gefunden",
                     severity = Severity.HIGH,
@@ -282,10 +269,9 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                     ),
                     source = "AppPermissionAuditor"
                 )
-            }
         }
 
-        val sideloadedApps = audits.filter { it.isSideloaded && it.riskScore > sideloadedRiskThreshold }
+        val sideloadedApps = audits.filter { it.isSideloaded }
         val sideloadedCount = sideloadedApps.size
         if (sideloadedCount > 0) {
             findings += VulnerabilityEntry(

@@ -21,14 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aisecurity.scanner.R
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.domain.model.ScanStatus
 import com.aisecurity.scanner.ui.viewmodels.ScanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanScreen(
-    scanDepth: ScanDepth,
     onScanComplete: (String) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ScanViewModel = hiltViewModel()
@@ -39,7 +37,7 @@ fun ScanScreen(
 
     // Scan starten sobald Screen geladen
     LaunchedEffect(Unit) {
-        viewModel.startScan(scanDepth)
+        viewModel.startScan()
     }
 
     // Navigation nach Abschluss
@@ -127,7 +125,7 @@ fun ScanScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = "Modus: ${scanDepth.label}",
+                                text = "Vollständige Analyse – alle 8 Module",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
