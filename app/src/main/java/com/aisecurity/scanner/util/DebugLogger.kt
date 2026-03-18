@@ -44,7 +44,7 @@ class DebugLogger @Inject constructor(
         runCatching { writer?.close() }
         writer = null
 
-        val dir = context.getExternalFilesDir("debug") ?: File(context.filesDir, "debug")
+        val dir = File(context.filesDir, "debug")
         dir.mkdirs()
 
         val timestamp = LocalDateTime.now().format(fileTimestampFormatter)
@@ -153,7 +153,7 @@ class DebugLogger @Inject constructor(
 
     /** Alle vorhandenen Debug-Log-Dateien (älteste zuerst). */
     fun getAllLogFiles(): List<File> {
-        val dir = context.getExternalFilesDir("debug") ?: File(context.filesDir, "debug")
+        val dir = File(context.filesDir, "debug")
         return dir.listFiles { f -> f.name.startsWith("aisec_debug_") && f.extension == "log" }
             ?.sortedBy { it.lastModified() }
             ?: emptyList()
