@@ -1,5 +1,6 @@
 package com.aisecurity.scanner.domain.scanner
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -84,6 +85,9 @@ class NetworkSecurityScanner @Inject constructor(private val context: Context) {
         } else {
             val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
             try {
+                // getScanResults benötigt ACCESS_FINE_LOCATION; ohne Berechtigung → leere Liste
+                // Wir behandeln null/leer korrekt durch Rückgabe von null weiter unten.
+                @SuppressLint("MissingPermission")
                 @Suppress("DEPRECATION")
                 wifiManager.scanResults?.firstOrNull { it.SSID == ssid }?.capabilities
             } catch (_: Exception) { null }
