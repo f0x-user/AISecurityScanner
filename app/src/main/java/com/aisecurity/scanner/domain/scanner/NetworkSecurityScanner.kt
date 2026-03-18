@@ -188,7 +188,7 @@ class NetworkSecurityScanner @Inject constructor(private val context: Context) {
             val active = cm.activeNetwork ?: return@run false
             val caps = cm.getNetworkCapabilities(active) ?: return@run false
             caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
-                    !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                    caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) // kein VPN aktiv
         }
         return if (!hasVpn && isOnPublicWifi) {
             VulnerabilityEntry(
