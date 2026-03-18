@@ -364,15 +364,58 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
             indicators += "Magisk-Verzeichnis gefunden"
         }
 
-        // Schreibbarer /system-Mount
+        // Schreibbarer /system-Mount: präzise Analyse zeilenweise
+        // Falsch-Positive vermeiden: overlay/tmpfs-Mounts auf /system/apex etc. sind normal
         try {
             val proc = Runtime.getRuntime().exec("mount")
             val output = BufferedReader(InputStreamReader(proc.inputStream)).readText()
-            if (output.contains("/system") && output.contains("rw,")) {
-                indicators += "/system als read-write gemountet"
-            }
             proc.destroy()
+
+            val systemRw = output.lines().any { line ->
+                // Format: "<gerät> on <mountpoint> type <fstyp> (<optionen>)"
+                val onIdx = line.indexOf(" on ")
+                val typeIdx = line.indexOf(" type ")
+                if (onIdx < 0 || typeIdx < 0 || typeIdx <= onIdx) return@any false
+
+                val mountPoint = line.substring(onIdx + 4, typeIdx).trim()
+                val afterType = line.substring(typeIdx + 6)
+                val spaceAfterFs = afterType.indexOf(' ')
+                val fsType = if (spaceAfterFs > 0) afterType.substring(0, spaceAfterFs) else afterType
+                val options = line.substringAfterLast("(").substringBefore(")")
+                val optionList = options.split(",").map { it.trim() }
+
+                mountPoint == "/system"
+                    && fsType !in setOf("overlay", "overlayfs", "tmpfs")
+                    && optionList.contains("rw")
+            }
+
+            if (systemRw) indicators += "/system als read-write gemountet (mögliche Root-Manipulation)"
         } catch (_: Exception) {}
+
+        val hasMagisk = installedRootApps.any { it.lowercase().contains("magisk") }
+                || File("/data/adb/magisk").exists() || File("/data/adb/modules").exists()
+
+        val remediationSteps = mutableListOf<String>()
+
+        // Kontextspezifische Behebungsschritte
+        if (hasMagisk) {
+            remediationSteps += "Magisk erkannt: Öffne die Magisk-App → 'Deinstallation' → 'Vollständige Deinstallation'."
+            remediationSteps += "Falls Magisk-App nicht mehr vorhanden: Fastboot-Deinstallation über Recovery erforderlich."
+        }
+        if (indicators.any { it.contains("su-Binary") }) {
+            remediationSteps += "su-Binary gefunden: Wird normalerweise durch Magisk-Deinstallation entfernt."
+            remediationSteps += "Alternativ: Root-Manager-App (z.B. Magisk, SuperSU) vollständig deinstallieren."
+        }
+        if (indicators.any { it.contains("Root-Apps") }) {
+            remediationSteps += "Root-Management-Apps deinstallieren: Einstellungen → Apps → [App] → Deinstallieren."
+        }
+        if (indicators.any { it.contains("Test-Keys") }) {
+            remediationSteps += "Test-Keys weisen auf ein inoffizielles ROM hin (Custom ROM)."
+            remediationSteps += "Lösung: Offizielles Firmware-Image des Herstellers via Fastboot oder Odin flashen."
+        }
+        remediationSteps += "Falls Root nicht selbst installiert: Gerät auf Werkseinstellungen zurücksetzen."
+        remediationSteps += "Nach Factory Reset alle Passwörter ändern, die auf dem Gerät verwendet wurden."
+        remediationSteps += "Für Fastboot/Odin: Offizielle Anleitungen des Geräteherstellers nutzen."
 
         return if (indicators.isNotEmpty()) {
             VulnerabilityEntry(
@@ -382,19 +425,17 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
                 cvssScore = 9.3f,
                 cvssVector = "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
                 affectedComponent = "Android-Sicherheitsmodell (Root)",
-                description = "Das Gerät zeigt Anzeichen einer Root-Kompromittierung:\n${indicators.joinToString("\n• ", "• ")}",
+                affectedApps = indicators,
+                description = "Das Gerät zeigt folgende Anzeichen einer Root-Kompromittierung:\n" +
+                        indicators.joinToString("\n• ", "• "),
                 impact = "Alle Android-Sicherheitsmechanismen sind umgangen. Jede App kann unbegrenzt auf alle Daten zugreifen.",
                 remediation = RemediationSteps(
                     priority = Priority.IMMEDIATE,
-                    steps = listOf(
-                        "Führe einen vollständigen Factory Reset durch.",
-                        "Stelle das originale Betriebssystem-Image wieder her (Fastboot/Odin).",
-                        "Wende dich an den Gerätehersteller für ein offizielles Firmware-Update.",
-                        "Ändere danach alle Passwörter, die auf dem Gerät gespeichert waren."
-                    ),
+                    steps = remediationSteps,
                     automatable = false,
+                    deepLinkSettings = "android.settings.APPLICATION_SETTINGS",
                     officialDocUrl = "https://source.android.com/docs/security/overview",
-                    estimatedTime = "~2 Stunden"
+                    estimatedTime = "~30 Minuten bis 2 Stunden"
                 ),
                 source = "PrivacyHardwareScanner"
             )
@@ -474,6 +515,8 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
             val bootIntent = Intent(Intent.ACTION_BOOT_COMPLETED)
             val receivers = pm.queryBroadcastReceivers(bootIntent, PackageManager.GET_RESOLVED_FILTER)
 
+            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+
             val suspiciousBootApps = receivers
                 .map { it.activityInfo.packageName }
                 .distinct()
@@ -481,13 +524,31 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
                     try {
                         val info = pm.getApplicationInfo(pkg, 0)
                         val isSystem = (info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-                        !isSystem && pkg != context.packageName
-                    } catch (e: Exception) { false }
+                        if (isSystem || pkg == context.packageName) return@filter false
+
+                        // Apps ausschließen, bei denen "Hintergrundnutzung" deaktiviert wurde
+                        // (OP_RUN_ANY_IN_BACKGROUND → MODE_IGNORED = eingeschränkt)
+                        val bgRestricted = try {
+                            val opResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                appOps.unsafeCheckOpNoThrow(
+                                    "android:run_any_in_background", info.uid, pkg
+                                )
+                            } else {
+                                @Suppress("DEPRECATION")
+                                appOps.checkOpNoThrow(
+                                    "android:run_any_in_background", info.uid, pkg
+                                )
+                            }
+                            opResult == AppOpsManager.MODE_IGNORED
+                        } catch (_: Exception) { false }
+
+                        !bgRestricted
+                    } catch (_: Exception) { false }
                 }
                 .mapNotNull { pkg ->
                     try {
                         pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString()
-                    } catch (e: Exception) { null }
+                    } catch (_: Exception) { null }
                 }
 
             // Schwellwert >15: Moderne Geräte haben typischerweise 10-20 Apps mit BOOT_COMPLETED
@@ -495,23 +556,27 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
             if (suspiciousBootApps.size > 15) {
                 VulnerabilityEntry(
                     id = "PRI-008",
-                    title = "${suspiciousBootApps.size} Drittanbieter-Apps starten beim Boot",
+                    title = "${suspiciousBootApps.size} Drittanbieter-Apps können beim Boot starten",
                     severity = Severity.MEDIUM,
                     cvssScore = 4.8f,
                     cvssVector = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:L",
                     affectedComponent = "Auto-Start (BOOT_COMPLETED)",
                     affectedApps = suspiciousBootApps.take(10),
-                    description = "Diese Apps registrieren sich für automatischen Start beim Gerätestart: ${suspiciousBootApps.take(8).joinToString(", ")}",
+                    description = "Diese Apps haben einen Boot-Receiver registriert und können beim Gerätestart aktiv werden: " +
+                            "${suspiciousBootApps.take(8).joinToString(", ")}.\n" +
+                            "Hinweis: Apps, die bereits durch Android eingeschränkt sind (z.B. durch 'Eingeschränkt' im Akku-Menü), " +
+                            "werden hier trotzdem angezeigt, da sie technisch registriert sind.",
                     impact = "Zu viele Auto-Start-Apps verlangsamen den Boot und können unerwünschte Hintergrundprozesse starten.",
                     remediation = RemediationSteps(
                         priority = Priority.LOW,
                         steps = listOf(
-                            "Prüfe welche Apps wirklich beim Start benötigt werden.",
-                            "Nutze: Einstellungen → Apps → [App] → Akku → Im Hintergrund ausführen → Einschränken",
-                            "Deinstalliere unbekannte Apps."
+                            "Prüfe unter 'Akku-Optimierung' welche Apps Ausnahmen haben.",
+                            "Apps bereits einschränken: Einstellungen → Apps → [App] → Akku → Einschränken",
+                            "Übersicht App-Energieverbrauch: Einstellungen → Akku → Akku-Nutzung",
+                            "Deinstalliere unbekannte Apps, die du nicht benötigst."
                         ),
                         automatable = false,
-                        deepLinkSettings = "android.settings.APPLICATION_SETTINGS",
+                        deepLinkSettings = "android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS",
                         officialDocUrl = "https://developer.android.com/training/monitoring-device-state/doze-standby",
                         estimatedTime = "~10 Minuten"
                     ),

@@ -9,14 +9,27 @@ data class ScanResult(
     val scanDepth: ScanDepth,
     val durationMs: Long,
     val vulnerabilities: List<VulnerabilityEntry>,
-    val appAudits: List<AppAudit> = emptyList()
+    val appAudits: List<AppAudit> = emptyList(),
+    // Vorberechnete Zähler aus der DB – gesetzt wenn vulnerabilities lazy geladen werden
+    private val storedCritical: Int = -1,
+    private val storedHigh: Int = -1,
+    private val storedMedium: Int = -1,
+    private val storedLow: Int = -1,
+    private val storedZeroDay: Int = -1,
+    private val storedActivelyExploited: Int = -1,
 ) {
-    val criticalCount get() = vulnerabilities.count { it.severity == Severity.CRITICAL }
-    val highCount get() = vulnerabilities.count { it.severity == Severity.HIGH }
-    val mediumCount get() = vulnerabilities.count { it.severity == Severity.MEDIUM }
-    val lowCount get() = vulnerabilities.count { it.severity == Severity.LOW }
-    val zeroDayCount get() = vulnerabilities.count { it.isZeroDay }
-    val activelyExploitedCount get() = vulnerabilities.count { it.isActivelyExploited }
+    val criticalCount: Int
+        get() = if (storedCritical >= 0) storedCritical else vulnerabilities.count { it.severity == Severity.CRITICAL }
+    val highCount: Int
+        get() = if (storedHigh >= 0) storedHigh else vulnerabilities.count { it.severity == Severity.HIGH }
+    val mediumCount: Int
+        get() = if (storedMedium >= 0) storedMedium else vulnerabilities.count { it.severity == Severity.MEDIUM }
+    val lowCount: Int
+        get() = if (storedLow >= 0) storedLow else vulnerabilities.count { it.severity == Severity.LOW }
+    val zeroDayCount: Int
+        get() = if (storedZeroDay >= 0) storedZeroDay else vulnerabilities.count { it.isZeroDay }
+    val activelyExploitedCount: Int
+        get() = if (storedActivelyExploited >= 0) storedActivelyExploited else vulnerabilities.count { it.isActivelyExploited }
 }
 
 enum class ScanStatus {

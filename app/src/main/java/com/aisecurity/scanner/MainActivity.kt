@@ -14,8 +14,6 @@ import com.aisecurity.scanner.ui.navigation.Screen
 import com.aisecurity.scanner.ui.theme.AISecurityTheme
 import com.aisecurity.scanner.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,11 +25,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Screenshot-Schutz für die gesamte App
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
+        // Screenshot-Schutz standardmäßig aktivieren
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 
         enableEdgeToEdge()
 
@@ -39,6 +34,15 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepository.settings.collectAsStateWithLifecycle(
                 initialValue = com.aisecurity.scanner.data.repository.AppSettings()
             )
+
+            // Reaktiver Screenshot-Schutz basierend auf Einstellung
+            SideEffect {
+                if (settings.screenshotAllowed) {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
 
             val appTheme = when (settings.theme) {
                 "Hell" -> AppTheme.LIGHT

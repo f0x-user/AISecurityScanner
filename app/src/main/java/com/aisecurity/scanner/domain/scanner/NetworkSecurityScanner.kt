@@ -55,22 +55,43 @@ class NetworkSecurityScanner @Inject constructor(private val context: Context) {
 
         if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return null
 
-        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        @Suppress("DEPRECATION")
-        val wifiInfo = wifiManager.connectionInfo ?: return null
-
-        @Suppress("DEPRECATION")
-        val ssid = wifiInfo.ssid?.replace("\"", "") ?: return null
-
-        // Prüfe auf offene Netzwerke via WifiManager Scan Results
-        val scanResults = try {
+        // SSID ermitteln: auf API 29+ über NetworkCapabilities.transportInfo (kein Standort nötig)
+        val ssid: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val wifiInfo = caps.transportInfo as? android.net.wifi.WifiInfo
+            val raw = wifiInfo?.ssid?.replace("\"", "") ?: return null
+            if (raw == "<unknown ssid>" || raw.isBlank()) return null
+            raw
+        } else {
+            val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
             @Suppress("DEPRECATION")
-            wifiManager.scanResults?.filter { it.SSID == ssid }
-        } catch (e: Exception) {
-            null
+            val raw = wifiManager.connectionInfo?.ssid?.replace("\"", "") ?: return null
+            if (raw == "<unknown ssid>" || raw.isBlank()) return null
+            raw
         }
 
-        val capabilities = scanResults?.firstOrNull()?.capabilities ?: ""
+        // Verschlüsselungstyp ermitteln
+        // API 31+: WifiInfo.currentSecurityType (präzise, kein Scan nötig)
+        // API 26–30: ScanResults (können leer sein → null → kein Befund)
+        val capabilities: String? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val wifiInfo = caps.transportInfo as? android.net.wifi.WifiInfo
+            // SECURITY_TYPE_OPEN=0, WEP=1, PSK=2(WPA2), EAP=3, SAE=4(WPA3), ...
+            when (wifiInfo?.currentSecurityType) {
+                0 -> ""            // offen
+                1 -> "[WEP]"       // WEP
+                2, 3 -> "[WPA2]"   // PSK / EAP (WPA2)
+                else -> "[WPA3]"   // SAE und neuere = sicher
+            }
+        } else {
+            val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            try {
+                @Suppress("DEPRECATION")
+                wifiManager.scanResults?.firstOrNull { it.SSID == ssid }?.capabilities
+            } catch (_: Exception) { null }
+        }
+
+        // Wenn Verschlüsselungstyp nicht bestimmbar → kein Befund (verhindert Falsch-Positive)
+        if (capabilities == null) return null
+
         return when {
             capabilities.isEmpty() || (!capabilities.contains("WPA") && !capabilities.contains("WEP")) -> {
                 VulnerabilityEntry(

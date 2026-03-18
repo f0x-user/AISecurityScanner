@@ -30,14 +30,14 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadLatestScan()
-    }
-
-    private fun loadLatestScan() {
+        // Flow-basierte Subscription: Dashboard aktualisiert sich automatisch nach jedem Scan
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val latest = runCatching { scanRepository.getLatestScan() }.getOrNull()
-            _uiState.update { it.copy(latestScan = latest, isLoading = false) }
+            scanRepository.getAllScans()
+                .map { scans -> scans.firstOrNull() }
+                .catch { _uiState.update { it.copy(isLoading = false) } }
+                .collect { latest ->
+                    _uiState.update { it.copy(latestScan = latest, isLoading = false) }
+                }
         }
     }
 
@@ -72,5 +72,5 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun refresh() = loadLatestScan()
+    // refresh() ist durch den Flow-Collector nicht mehr nötig – wird automatisch aktualisiert
 }

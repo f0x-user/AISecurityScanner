@@ -61,6 +61,9 @@ class ZeroDayCorrelator @Inject constructor(
                 ?: "Keine Beschreibung verfügbar"
             if (isDescriptionForOlderAndroid(description, apiLevel)) continue
 
+            // Relevanzprüfung: CVE muss tatsächlich Android betreffen
+            if (!isCveRelevantForAndroid(description, cve.published)) continue
+
             val kevEntry = if (isActivelyExploited) vulnRepository.getKevEntryForCve(cve.id) else null
 
             val severity = Severity.fromCvssScore(cvssScore)
@@ -157,6 +160,42 @@ class ZeroDayCorrelator @Inject constructor(
             // Bei Parse-Fehler: im Zweifel nicht als gepatcht behandeln
             false
         }
+    }
+
+    /**
+     * Prüft, ob eine CVE tatsächlich für Android relevant ist.
+     * Filtert nicht-Android-Plattformen (z.B. Flash Player, Adobe Acrobat, Windows-only CVEs)
+     * heraus, auch wenn diese im CISA KEV gelistet sind.
+     */
+    private fun isCveRelevantForAndroid(description: String, cvePublished: String): Boolean {
+        val lowerDesc = description.lowercase()
+        val publishYear = cvePublished.take(4).toIntOrNull() ?: 2020
+
+        // Für sehr alte CVEs (vor 2016): Android muss explizit erwähnt sein
+        if (publishYear < 2016 && !lowerDesc.contains("android")) {
+            return false
+        }
+
+        // Adobe Flash Player ist seit Android 4.1 (API 16, 2012) nicht mehr unterstützt.
+        // Auf Geräten mit minSdk 26 ist Flash Player definitiv nicht installiert.
+        if (lowerDesc.contains("flash player")) return false
+
+        // CVEs, die ausschließlich nicht-Android-Plattformen betreffen
+        val nonAndroidOnlyIndicators = listOf(
+            "adobe flash",
+            "adobe acrobat",
+            "adobe reader",
+            "shockwave",
+            "windows vista",
+            "windows xp",
+            "internet explorer",
+            "microsoft office"
+        )
+        val mentionsOnlyNonAndroid = nonAndroidOnlyIndicators.any { lowerDesc.contains(it) }
+            && !lowerDesc.contains("android")
+        if (mentionsOnlyNonAndroid) return false
+
+        return true
     }
 
     /**

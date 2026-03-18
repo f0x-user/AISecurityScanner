@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
-import kotlin.math.max
+import kotlin.math.roundToInt
 
 class SecurityScanManager @Inject constructor(
     private val systemInfoScanner: SystemInfoScanner,
@@ -24,6 +24,10 @@ class SecurityScanManager @Inject constructor(
 ) {
     private val _progress = MutableStateFlow(ScanProgress())
     val progress: StateFlow<ScanProgress> = _progress.asStateFlow()
+
+    /** Letztes abgeschlossenes Scan-Log – bleibt bis zum nächsten Scan-Start erhalten */
+    var lastScanLog: List<String> = emptyList()
+        private set
 
     private var scanJob: Job? = null
 
@@ -48,7 +52,16 @@ class SecurityScanManager @Inject constructor(
             )
         }
 
+        lastScanLog = emptyList()
         _progress.value = ScanProgress(status = ScanStatus.RUNNING, progressPercent = 0)
+
+        // Gerätezustand vor dem Scan erfassen
+        log("=== Gerätezustand (IST-Aufnahme) ===")
+        log("  Android: ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT})")
+        log("  Sicherheitspatch: ${android.os.Build.VERSION.SECURITY_PATCH}")
+        log("  Gerät: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+        log("  Build-Tags: ${android.os.Build.TAGS ?: "unbekannt"}")
+        log("====================================")
         log("Vollständiger Sicherheitsscan gestartet")
         debugLogger.logSection("SCAN START | ID: $scanId")
 
@@ -183,6 +196,7 @@ class SecurityScanManager @Inject constructor(
                 appAudits = allAudits
             )
 
+            lastScanLog = logLines.toList()
             _progress.value = ScanProgress(
                 status = ScanStatus.COMPLETED,
                 progressPercent = 100,
@@ -215,25 +229,31 @@ class SecurityScanManager @Inject constructor(
     }
 
     /**
-     * Sicherheits-Score: 100 = perfekt, 0 = kritisch
-     * Gewichtung nach CVSS-Score-Schweregrad
+     * Sicherheits-Score: 100 = perfekt, 5 = kritisch kompromittiert.
+     *
+     * Verwendet einen Ansatz mit abnehmender Wirkung (Diminishing Returns):
+     * Jede Schwachstelle reduziert den Score um einen Prozentsatz des verbleibenden Scores.
+     * Dadurch bleibt der Score auch bei vielen Befunden realistisch (z. B. 17× MITTEL ≈ 50/100).
+     * Wird ein Befund behoben, steigt der Score entsprechend wieder an.
      */
     private fun calculateSecurityScore(vulnerabilities: List<VulnerabilityEntry>): Int {
         if (vulnerabilities.isEmpty()) return 100
 
-        val penalty = vulnerabilities.sumOf { vuln ->
-            val basePenalty = when (vuln.severity) {
-                Severity.CRITICAL -> 25
-                Severity.HIGH -> 15
-                Severity.MEDIUM -> 7
-                Severity.LOW -> 3
-                Severity.INFO -> 0
+        var score = 100.0
+        // Kritischste Befunde zuerst – damit ihr Einfluss auf den Gesamtscore größer ist
+        for (vuln in vulnerabilities.sortedByDescending { it.cvssScore }) {
+            val base = when (vuln.severity) {
+                Severity.CRITICAL -> if (vuln.isActivelyExploited) 14.0 else 11.0
+                Severity.HIGH     -> if (vuln.isActivelyExploited) 8.0  else 6.0
+                Severity.MEDIUM   -> 4.0
+                Severity.LOW      -> 1.5
+                Severity.INFO     -> 0.0
             }
-            val exploitMultiplier = if (vuln.isActivelyExploited) 1.5 else 1.0
-            val zeroDayMultiplier = if (vuln.isZeroDay) 1.3 else 1.0
-            (basePenalty * exploitMultiplier * zeroDayMultiplier).toInt()
+            val zeroDay = if (vuln.isZeroDay) 3.0 else 0.0
+            val reduction = (base + zeroDay) * (score / 100.0)
+            score -= reduction
         }
 
-        return max(0, 100 - penalty)
+        return score.roundToInt().coerceIn(5, 100)
     }
 }

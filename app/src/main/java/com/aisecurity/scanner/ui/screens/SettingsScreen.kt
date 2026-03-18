@@ -19,7 +19,6 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aisecurity.scanner.R
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,57 +93,15 @@ fun SettingsScreen(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            // === Scan ===
-            SettingsSectionHeader("Scan-Einstellungen", Icons.Default.Shield)
-
-            var scanDepthMenuExpanded by remember { mutableStateOf(false) }
-            SettingsItem(
-                title = stringResource(R.string.settings_scan_depth),
-                subtitle = settings.scanDepth.label,
-                onClick = { scanDepthMenuExpanded = true }
-            ) {
-                DropdownMenu(expanded = scanDepthMenuExpanded, onDismissRequest = { scanDepthMenuExpanded = false }) {
-                    ScanDepth.entries.forEach { depth ->
-                        DropdownMenuItem(
-                            text = { Text("${depth.label} (~${depth.durationMinutes} min)") },
-                            onClick = { viewModel.updateScanDepth(depth); scanDepthMenuExpanded = false }
-                        )
-                    }
-                }
-            }
-
             SettingsToggle(
-                title = stringResource(R.string.settings_auto_scan),
-                subtitle = "Automatische Scans durchführen",
-                checked = settings.autoScan,
-                onCheckedChange = viewModel::updateAutoScan
+                title = "Screenshots erlauben",
+                subtitle = if (settings.screenshotAllowed)
+                    "Screenshots sind erlaubt (Sicherheitshinweis: Scan-Daten können geteilt werden)"
+                else
+                    "Screenshots gesperrt (empfohlen – schützt sensible Scan-Daten)",
+                checked = settings.screenshotAllowed,
+                onCheckedChange = viewModel::updateScreenshotAllowed
             )
-
-            if (settings.autoScan) {
-                var intervalMenuExpanded by remember { mutableStateOf(false) }
-                SettingsItem(
-                    title = "Scan-Intervall",
-                    subtitle = settings.autoScanInterval,
-                    onClick = { intervalMenuExpanded = true }
-                ) {
-                    DropdownMenu(expanded = intervalMenuExpanded, onDismissRequest = { intervalMenuExpanded = false }) {
-                        listOf("Täglich", "Wöchentlich", "Monatlich").forEach { interval ->
-                            DropdownMenuItem(
-                                text = { Text(interval) },
-                                onClick = { viewModel.updateAutoScanInterval(interval); intervalMenuExpanded = false }
-                            )
-                        }
-                    }
-                }
-                SettingsToggle(
-                    title = "Nur beim Laden scannen",
-                    subtitle = "Scans nur bei angeschlossenem Ladegerät",
-                    checked = settings.scanOnCharging,
-                    onCheckedChange = viewModel::updateScanOnCharging
-                )
-            }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -210,12 +167,6 @@ fun SettingsScreen(
             SettingsSectionHeader("Datenschutz", Icons.Default.PrivacyTip)
 
             SettingsToggle(
-                title = stringResource(R.string.settings_anonymous_telemetry),
-                subtitle = "Anonyme Nutzungsdaten senden (opt-in). Hilft uns, die App zu verbessern.",
-                checked = settings.anonymousTelemetry,
-                onCheckedChange = viewModel::updateAnonymousTelemetry
-            )
-            SettingsToggle(
                 title = stringResource(R.string.settings_local_only),
                 subtitle = "Keine Daten werden das Gerät verlassen",
                 checked = settings.localOnlyMode,
@@ -233,20 +184,15 @@ fun SettingsScreen(
             // === Export ===
             SettingsSectionHeader("Export", Icons.Default.FileDownload)
 
-            var exportMenuExpanded by remember { mutableStateOf(false) }
-            SettingsItem(
-                title = stringResource(R.string.settings_export_format),
-                subtitle = settings.exportFormat,
-                onClick = { exportMenuExpanded = true }
+            Button(
+                onClick = { viewModel.exportLastScan(context) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
             ) {
-                DropdownMenu(expanded = exportMenuExpanded, onDismissRequest = { exportMenuExpanded = false }) {
-                    listOf("PDF", "JSON", "CSV", "HTML").forEach { format ->
-                        DropdownMenuItem(
-                            text = { Text(format) },
-                            onClick = { viewModel.updateExportFormat(format); exportMenuExpanded = false }
-                        )
-                    }
-                }
+                Icon(Icons.Default.FileDownload, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Letzten Scan exportieren")
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -361,7 +307,7 @@ fun SettingsScreen(
                                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                             type = "text/plain"
                                             putExtra(Intent.EXTRA_STREAM, uri)
-                                            putExtra(Intent.EXTRA_SUBJECT, "AISecurityScanner Debug-Log")
+                                            putExtra(Intent.EXTRA_SUBJECT, "SecurityScanner Debug-Log")
                                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                         }
                                         context.startActivity(

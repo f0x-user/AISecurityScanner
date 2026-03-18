@@ -4,19 +4,29 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Shield icon -->
+
+    <!-- Schild-Schatten (Tiefeneffekt) -->
+    <path
+        android:fillColor="#30000000"
+        android:pathData="M56,23 L82,36 L82,57 C82,71.5 70,83 56,88 L56,91 C56,91 31,80 31,57 L31,36 Z" />
+
+    <!-- Schild (weiß, abgerundete Spitze) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,20 L30,32 L30,54 C30,67.25 40.5,79.7 54,83 C67.5,79.7 78,67.25 78,54 L78,32 Z" />
-    <!-- Lock body -->
+        android:pathData="M54,19 L80,32 L80,55 C80,70 68.5,82 54,87 C39.5,82 28,70 28,55 L28,32 Z" />
+
+    <!-- Schild-Innenfläche (sehr hellblau für Tiefe) -->
     <path
-        android:fillColor="#1A237E"
-        android:pathData="M46,52 L62,52 L62,64 L46,64 Z" />
-    <!-- Lock shackle -->
+        android:fillColor="#EEF4FF"
+        android:pathData="M54,24 L76,35 L76,55 C76,68 65.5,79 54,83 C42.5,79 32,68 32,55 L32,35 Z" />
+
+    <!-- Häkchen (kräftiges Dunkelblau) -->
     <path
-        android:fillColor="#1A237E"
-        android:pathData="M50,52 L50,47 C50,44.24 52.24,42 55,42 C57.76,42 60,44.24 60,47 L60,52"
-        android:strokeColor="#1A237E"
-        android:strokeWidth="3"
-        android:fillAlpha="0" />
+        android:strokeColor="#1565C0"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M38,54 L49,65 L71,41" />
+
 </vector>

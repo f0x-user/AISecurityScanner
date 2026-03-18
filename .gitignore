@@ -1,5 +1,12 @@
-# Project exclude paths
+# Gradle
 /.gradle/
+/build/
 /app/build/
-/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
+
+# Lokale Konfiguration
 local.properties
+
+# Keystore-Dateien (niemals in VCS!)
+*.jks
+*.keystore
+keystore_base64.txt

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AI Security Scanner</string>
+    <string name="app_name">SecurityScanner</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Willkommen beim AI Security Scanner</string>

@@ -1,5 +1,6 @@
 package com.aisecurity.scanner.domain.scanner
 
+import android.app.AppOpsManager
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -256,10 +257,31 @@ class DeviceHardeningChecker @Inject constructor(private val context: Context) {
                 pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
             }
 
+            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val appsWithInstallPermission = packages.filter { pkg ->
                 val isSystem = (pkg.applicationInfo?.flags ?: 0) and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0
                 if (isSystem || pkg.packageName == context.packageName) return@filter false
-                pkg.requestedPermissions?.contains("android.permission.REQUEST_INSTALL_PACKAGES") == true
+                // Nur Apps die tatsächlich die Berechtigung erhalten haben (nicht nur angefragt)
+                try {
+                    val opStr = "android:request_install_packages"
+                    val opResult = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        appOps.unsafeCheckOpNoThrow(
+                            opStr,
+                            pkg.applicationInfo!!.uid,
+                            pkg.packageName
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        appOps.checkOpNoThrow(
+                            opStr,
+                            pkg.applicationInfo!!.uid,
+                            pkg.packageName
+                        )
+                    }
+                    opResult == AppOpsManager.MODE_ALLOWED
+                } catch (_: Exception) {
+                    false
+                }
             }.mapNotNull { pkg ->
                 try { pm.getApplicationLabel(pkg.applicationInfo!!).toString() } catch (_: Exception) { null }
             }
@@ -373,10 +395,9 @@ class DeviceHardeningChecker @Inject constructor(private val context: Context) {
     // ─── FORENSIC-only ────────────────────────────────────────────────────────
 
     private fun checkAutoFillSecurity(): VulnerabilityEntry? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
         val autofillService = try {
             Settings.Secure.getString(context.contentResolver, "autofill_service")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         } ?: return null
 
@@ -419,15 +440,14 @@ class DeviceHardeningChecker @Inject constructor(private val context: Context) {
     }
 
     private fun checkLockdownModeAvailability(): VulnerabilityEntry? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
-        val lockdownEnabled = try {
+        try {
             Settings.Secure.getInt(context.contentResolver, "lockdown_mode", 0)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
         val keyguardDisabled = try {
             Settings.Global.getInt(context.contentResolver, "keyguard_disabled_features", 0)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             0
         }
         // Wenn Keyguard-Features deaktiviert sind (z.B. alle Features disabled = 0x0fff)

@@ -35,7 +35,13 @@ class ScanRepository @Inject constructor(
                     overallScore = entity.overallScore,
                     scanDepth = ScanDepth.valueOf(entity.scanDepth),
                     durationMs = entity.durationMs,
-                    vulnerabilities = emptyList() // Lazy – Details werden separat geladen
+                    vulnerabilities = emptyList(), // Lazy – Details werden separat geladen
+                    storedCritical = entity.criticalCount,
+                    storedHigh = entity.highCount,
+                    storedMedium = entity.mediumCount,
+                    storedLow = entity.lowCount,
+                    storedZeroDay = entity.zeroDayCount,
+                    storedActivelyExploited = entity.activelyExploitedCount,
                 )
             }
         }

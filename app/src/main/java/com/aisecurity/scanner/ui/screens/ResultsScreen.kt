@@ -1,18 +1,24 @@
 package com.aisecurity.scanner.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +37,7 @@ fun ResultsScreen(
     viewModel: ResultsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -110,7 +117,7 @@ fun ResultsScreen(
                 }
             }
 
-            // Tabs: Befunde | Betroffene Apps
+            // Tabs: Befunde | Betroffene Apps | Scan-Log
             val allVulnerabilities = uiState.scanResult?.vulnerabilities ?: emptyList()
             val affectedAppsMap = remember(allVulnerabilities) {
                 buildAffectedAppsMap(allVulnerabilities)
@@ -128,16 +135,71 @@ fun ResultsScreen(
                     onClick = { selectedTab = 1 },
                     text = {
                         val appCount = affectedAppsMap.size
-                        Text(if (appCount > 0) "Betroffene Apps ($appCount)" else "Betroffene Apps")
+                        Text(if (appCount > 0) "Apps ($appCount)" else "Apps")
                     },
                     icon = { Icon(Icons.Default.Apps, null, Modifier.size(18.dp)) }
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("Scan-Log") },
+                    icon = { Icon(Icons.Default.List, null, Modifier.size(18.dp)) }
                 )
             }
 
             when (selectedTab) {
                 0 -> FindingsTab(uiState, viewModel, onNavigateToDetail)
                 1 -> AffectedAppsTab(affectedAppsMap, onNavigateToDetail)
+                2 -> ScanLogTab(uiState.scanLogLines)
             }
+        }
+    }
+}
+
+@Composable
+private fun ScanLogTab(logLines: List<String>) {
+    if (logLines.isEmpty()) {
+        Box(Modifier.fillMaxSize(), Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.List,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Kein Scan-Log verfügbar.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Log ist nur nach einem frisch durchgeführten Scan sichtbar.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        return
+    }
+
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        items(logLines) { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = if (line.startsWith("===") || line.startsWith("  Android") || line.startsWith("  Sicherheit"))
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -356,6 +418,7 @@ fun VulnerabilityCard(
     vulnerability: VulnerabilityEntry,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
     ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -431,7 +494,21 @@ fun VulnerabilityCard(
                     )
                     vulnerability.affectedApps.take(3).forEach { appName ->
                         SuggestionChip(
-                            onClick = onClick,
+                            onClick = {
+                                // Direkt zur App navigieren via Packagename-Suche
+                                val pkg = resolvePackageName(context, appName)
+                                if (pkg != null) {
+                                    runCatching {
+                                        context.startActivity(
+                                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.parse("package:$pkg"))
+                                                .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                        )
+                                    }
+                                } else {
+                                    onClick()
+                                }
+                            },
                             label = { Text(appName, style = MaterialTheme.typography.labelSmall) }
                         )
                     }
@@ -452,6 +529,44 @@ fun VulnerabilityCard(
                 maxLines = 3,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            // Quick-Fix Button wenn ein Settings-Link vorhanden ist
+            vulnerability.remediation.deepLinkSettings?.let { settingsAction ->
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(settingsAction).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                            )
+                        }.onFailure {
+                            // Fallback auf Sicherheitseinstellungen
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_SECURITY_SETTINGS)
+                                        .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Icon(Icons.Default.Build, null, Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Jetzt beheben", style = MaterialTheme.typography.labelMedium)
+                }
+            }
         }
     }
+}
+
+/** Versucht, anhand des Anzeigenamens den Paketnamen einer App zu finden */
+private fun resolvePackageName(context: android.content.Context, appName: String): String? {
+    return try {
+        val pm = context.packageManager
+        pm.getInstalledApplications(0).firstOrNull { appInfo ->
+            pm.getApplicationLabel(appInfo).toString().equals(appName, ignoreCase = true)
+        }?.packageName
+    } catch (_: Exception) { null }
 }

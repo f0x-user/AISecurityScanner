@@ -184,14 +184,24 @@ fun ScanScreen(
                 }
             }
 
-            // Live-Log
-            if (progress.logLines.isNotEmpty()) {
-                Text("Scan-Log", style = MaterialTheme.typography.titleSmall)
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
+            // Live-Log – immer sichtbar, auch wenn noch leer
+            Text("Scan-Log", style = MaterialTheme.typography.titleSmall)
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                if (progress.logLines.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Text(
+                            "Scan wird vorbereitet...",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = FontFamily.Monospace
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
                     LazyColumn(
                         state = logListState,
                         modifier = Modifier.padding(12.dp),
@@ -203,7 +213,10 @@ fun ScanScreen(
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontFamily = FontFamily.Monospace
                                 ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (line.startsWith("==="))
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }

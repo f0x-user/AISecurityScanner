@@ -213,6 +213,59 @@ private fun RemediationTab(vuln: VulnerabilityEntry, context: android.content.Co
             }
         }
 
+        // Betroffene Apps mit Direktlinks
+        if (vuln.affectedApps.isNotEmpty()) {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Betroffene Apps", style = MaterialTheme.typography.titleSmall)
+                    HorizontalDivider()
+                    vuln.affectedApps.forEach { appName ->
+                        val packageName = remember(appName) {
+                            resolvePackageNameForDetail(context, appName)
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    Icons.Default.Android,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(appName, style = MaterialTheme.typography.bodyMedium)
+                            }
+                            if (packageName != null) {
+                                TextButton(
+                                    onClick = {
+                                        runCatching {
+                                            context.startActivity(
+                                                Intent(
+                                                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                    Uri.parse("package:$packageName")
+                                                ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                            )
+                                        }
+                                    },
+                                    contentPadding = PaddingValues(4.dp)
+                                ) {
+                                    Icon(Icons.Default.OpenInNew, null, Modifier.size(14.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Öffnen", style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Quick-Action Buttons
         vuln.remediation.deepLinkSettings?.let { settingsAction ->
             Button(
@@ -221,6 +274,13 @@ private fun RemediationTab(vuln: VulnerabilityEntry, context: android.content.Co
                         context.startActivity(
                             Intent(settingsAction).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                         )
+                    }.onFailure {
+                        runCatching {
+                            context.startActivity(
+                                Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)
+                                    .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                            )
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -249,6 +309,15 @@ private fun RemediationTab(vuln: VulnerabilityEntry, context: android.content.Co
             }
         }
     }
+}
+
+private fun resolvePackageNameForDetail(context: android.content.Context, appName: String): String? {
+    return try {
+        val pm = context.packageManager
+        pm.getInstalledApplications(0).firstOrNull { appInfo ->
+            pm.getApplicationLabel(appInfo).toString().equals(appName, ignoreCase = true)
+        }?.packageName
+    } catch (_: Exception) { null }
 }
 
 @Composable

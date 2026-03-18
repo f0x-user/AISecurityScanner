@@ -7,6 +7,7 @@ import com.aisecurity.scanner.data.repository.ScanRepository
 import com.aisecurity.scanner.domain.model.ScanResult
 import com.aisecurity.scanner.domain.model.Severity
 import com.aisecurity.scanner.domain.model.VulnerabilityEntry
+import com.aisecurity.scanner.domain.scanner.SecurityScanManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -19,12 +20,14 @@ data class ResultsUiState(
     val filteredVulnerabilities: List<VulnerabilityEntry> = emptyList(),
     val selectedSeverity: Severity? = null,
     val sortOrder: SortOrder = SortOrder.SEVERITY,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val scanLogLines: List<String> = emptyList()
 )
 
 @HiltViewModel
 class ResultsViewModel @Inject constructor(
     private val scanRepository: ScanRepository,
+    private val scanManager: SecurityScanManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -45,7 +48,8 @@ class ResultsViewModel @Inject constructor(
                 it.copy(
                     scanResult = result,
                     filteredVulnerabilities = result?.vulnerabilities ?: emptyList(),
-                    isLoading = false
+                    isLoading = false,
+                    scanLogLines = scanManager.lastScanLog
                 )
             }
         }

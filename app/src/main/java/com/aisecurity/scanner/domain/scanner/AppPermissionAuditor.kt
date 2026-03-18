@@ -59,9 +59,13 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
             pkg.packageName
         }
 
+        // Nur tatsächlich vom Nutzer gewährte gefährliche Berechtigungen zählen
         val grantedDangerous = pkg.requestedPermissions
             ?.filterNotNull()
-            ?.filter { it in dangerousPermissions }
+            ?.filter { perm ->
+                perm in dangerousPermissions &&
+                pm.checkPermission(perm, pkg.packageName) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
             ?: emptyList()
 
         val hasOverlay = pkg.requestedPermissions?.contains(
@@ -167,10 +171,11 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                     steps = listOf(
                         "Prüfe jede App mit Device-Admin-Rechten auf Legitimität.",
                         "Widerrufe unbekannte Device-Admin-Apps: Einstellungen → Sicherheit → Geräteadministratoren",
+                        "Oder: Einstellungen → Biometrie und Sicherheit → Geräteadmin-Apps",
                         "Behalte nur vertrauenswürdige Apps wie MDM-Software deines Arbeitgebers."
                     ),
                     automatable = false,
-                    deepLinkSettings = "android.app.action.DEVICE_ADMIN_SETTINGS",
+                    deepLinkSettings = "android.settings.SECURITY_SETTINGS",
                     officialDocUrl = "https://developer.android.com/guide/topics/admin/device-admin",
                     estimatedTime = "~5 Minuten"
                 ),
@@ -215,14 +220,16 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
         if (permissionHeavyApps.isNotEmpty()) {
             findings += VulnerabilityEntry(
                     id = "APP-004",
-                    title = "${permissionHeavyApps.size} App(s) mit ≥7 gefährlichen Berechtigungen",
+                    title = "${permissionHeavyApps.size} App(s) mit ≥7 tatsächlich gewährten gefährlichen Berechtigungen",
                     severity = Severity.MEDIUM,
                     cvssScore = 5.8f,
                     cvssVector = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
                     affectedComponent = "App-Berechtigungen",
                     affectedApps = permissionHeavyApps.map { it.appName },
-                    description = "Apps mit sehr vielen gefährlichen Berechtigungen haben " +
-                            "weitreichenden Zugriff auf persönliche Daten.",
+                    description = "Apps mit sehr vielen tatsächlich gewährten gefährlichen Berechtigungen haben " +
+                            "weitreichenden Zugriff auf persönliche Daten. " +
+                            "Hinweis: Systemapps und vorinstallierte Berechtigungen können nicht durch den Nutzer widerrufen werden – " +
+                            "diese sind hier bereits herausgefiltert.",
                     impact = "Datenmissbrauch durch umfangreiche Zugriffsrechte auf Kontakte, " +
                             "Standort, Kamera, Mikrofon und SMS.",
                     remediation = RemediationSteps(
@@ -230,7 +237,8 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                         steps = listOf(
                             "Überprüfe für jede App, ob alle Berechtigungen wirklich notwendig sind.",
                             "Entziehe nicht benötigte Berechtigungen: Einstellungen → Apps → [App] → Berechtigungen",
-                            "Deinstalliere Apps, die du nicht kennst."
+                            "Falls Berechtigungen nicht widerrufbar sind (ausgegraut), sind diese system-seitig vergeben.",
+                            "Deinstalliere Apps, die du nicht kennst oder nicht mehr nutzt."
                         ),
                         automatable = false,
                         deepLinkSettings = "android.settings.APPLICATION_SETTINGS",
@@ -274,26 +282,38 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
         val sideloadedApps = audits.filter { it.isSideloaded }
         val sideloadedCount = sideloadedApps.size
         if (sideloadedCount > 0) {
+            val sideloadedDesc = sideloadedApps.take(5).joinToString("; ") { audit ->
+                val source = when {
+                    audit.installSource == null -> "${audit.appName} (Installationsquelle unbekannt)"
+                    else -> "${audit.appName} (installiert von: ${audit.installSource})"
+                }
+                source
+            }
             findings += VulnerabilityEntry(
                 id = "APP-003",
-                title = "$sideloadedCount risikoreiche Sideloaded-App(s) gefunden",
+                title = "$sideloadedCount App(s) außerhalb vertrauenswürdiger Stores installiert",
                 severity = Severity.MEDIUM,
                 cvssScore = 5.5f,
                 cvssVector = "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:L/I:H/A:N",
                 affectedComponent = "App-Installation",
                 affectedApps = sideloadedApps.map { it.appName },
-                description = "Sideloaded-Apps wurden nicht durch den Play Store geprüft " +
-                        "und können Malware enthalten.",
-                impact = "Unbekannte Apps können Daten stehlen, Werbung injizieren oder Hintertüren öffnen.",
+                description = "Diese Apps wurden nicht über einen vertrauenswürdigen Store (z.B. Google Play, Galaxy Store) " +
+                        "installiert. Das bedeutet: keine automatische Sicherheitsprüfung durch den Store.\n" +
+                        "Hinweis: Apps aus F-Droid, Aurora Store oder selbst via ADB installierte Entwickler-Apps " +
+                        "können legitim sein.\n" +
+                        "Gefundene Apps: $sideloadedDesc",
+                impact = "Nicht geprüfte Apps können Malware, Spyware oder unerwünschte Werbung enthalten.",
                 remediation = RemediationSteps(
                     priority = Priority.NORMAL,
                     steps = listOf(
-                        "Überprüfe alle Sideloaded-Apps.",
-                        "Deinstalliere Apps, die du nicht kennst oder nicht brauchst.",
-                        "Deaktiviere 'Unbekannte Quellen' in den Sicherheitseinstellungen."
+                        "Überprüfe jede aufgelistete App: Erkennst du sie? Hast du sie bewusst installiert?",
+                        "Apps aus F-Droid oder Aurora Store sind oft legitime Open-Source-Apps.",
+                        "Apps ohne erkennbare Installationsquelle sollten genauer geprüft werden.",
+                        "Unbekannte Apps deinstallieren: Einstellungen → Apps → [App] → Deinstallieren",
+                        "Für mehr Infos: VirusTotal.com erlaubt die Prüfung von APK-Dateien auf Malware."
                     ),
                     automatable = false,
-                    deepLinkSettings = "android.settings.SECURITY_SETTINGS",
+                    deepLinkSettings = "android.settings.MANAGE_UNKNOWN_APP_SOURCES",
                     officialDocUrl = "https://support.google.com/android/answer/2812853",
                     estimatedTime = "~10 Minuten"
                 ),

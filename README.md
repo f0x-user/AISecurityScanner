@@ -1,6 +1,6 @@
-# AI Security Scanner
+# SecurityScanner
 
-Eine produktionsreife Android Security Scanner App in Kotlin + Jetpack Compose, die Android-Geräte ohne Root-Rechte auf Sicherheitslücken analysiert.
+Eine produktionsreife Android-Sicherheitsscanner-App in Kotlin + Jetpack Compose, die Android-Geräte ohne Root-Rechte auf Sicherheitslücken analysiert.
 
 ---
 
@@ -14,7 +14,7 @@ Clean Architecture + MVVM + Repository Pattern
 │  Screens (Compose) + ViewModels (Hilt)          │
 ├─────────────────────────────────────────────────┤
 │                 Domain Layer                    │
-│  7 Scanner-Module + SecurityScanManager         │
+│  8 Scanner-Module + SecurityScanManager         │
 │  Domain Models (VulnerabilityEntry, ScanResult) │
 ├─────────────────────────────────────────────────┤
 │                  Data Layer                     │
@@ -25,19 +25,34 @@ Clean Architecture + MVVM + Repository Pattern
 
 ## Tech Stack
 
-| Bereich | Technologie |
-|---------|-------------|
-| Sprache | Kotlin 2.1 |
-| UI | Jetpack Compose + Material 3 |
-| Architektur | MVVM + Clean Architecture |
-| DI | Hilt/Dagger2 |
-| Async | Kotlin Coroutines + Flow |
-| Netzwerk | Retrofit2 + OkHttp3 + Moshi |
-| Datenbank | Room + SQLCipher |
-| Security | Android Keystore + EncryptedSharedPreferences |
-| Background | WorkManager |
-| Min SDK | API 26 (Android 8.0) |
-| Target SDK | API 35 (Android 15) |
+| Bereich        | Technologie                              |
+|----------------|------------------------------------------|
+| Sprache        | Kotlin 2.1                               |
+| UI             | Jetpack Compose + Material 3             |
+| Architektur    | MVVM + Clean Architecture                |
+| DI             | Hilt/Dagger2                             |
+| Async          | Kotlin Coroutines + Flow                 |
+| Netzwerk       | Retrofit2 + OkHttp3 + Moshi              |
+| Datenbank      | Room + SQLCipher                         |
+| Security       | Android Keystore + DataStore             |
+| Background     | WorkManager                              |
+| Min SDK        | API 26 (Android 8.0)                     |
+| Target SDK     | API 35 (Android 15)                      |
+
+---
+
+## Scanner-Module
+
+| # | Modul                   | Prüft                                                       |
+|---|-------------------------|-------------------------------------------------------------|
+| 1 | SystemInfoScanner       | Android-Version, Patch-Level, SELinux, Verified Boot        |
+| 2 | AppPermissionAuditor    | Berechtigungen, Sideloaded-Apps, Device-Admin               |
+| 3 | NetworkSecurityScanner  | WLAN-Sicherheit (SSID, WPA3/WPA2/offen), VPN, offene Ports  |
+| 4 | DeviceHardeningChecker  | Bildschirmsperre, USB-Debugging, Developer Options          |
+| 5 | StorageSecurityScanner  | Geräteverschlüsselung, Benutzerzertifikate                  |
+| 6 | ZeroDayCorrelator       | NVD-CVEs, CISA KEV, CVSS v3.1, Patch-Level-Abgleich        |
+| 7 | MalwareIndicatorScanner | Bekannte Malware-Packages, Stalkerware, Accessibility-Missbrauch |
+| 8 | PrivacyHardwareScanner  | Root-Indikatoren, Frida, Boot-Receiver, Kamera/Mikrofon-Zugriff |
 
 ---
 
@@ -46,154 +61,95 @@ Clean Architecture + MVVM + Repository Pattern
 ```
 app/src/main/java/com/aisecurity/scanner/
 ├── AISecurityApp.kt               # Hilt Application + WorkManager
-├── MainActivity.kt                # Einstiegspunkt + FLAG_SECURE
+├── MainActivity.kt                # Einstiegspunkt + FLAG_SECURE (reaktiv)
 ├── di/
 │   ├── AppModule.kt               # DataStore
 │   ├── DatabaseModule.kt          # Room + SQLCipher
 │   ├── NetworkModule.kt           # Retrofit (NVD, CISA, OSV)
 │   └── ScannerModule.kt           # Scanner-DI
 ├── data/
-│   ├── db/
-│   │   ├── AppDatabase.kt
-│   │   ├── dao/                   # ScanResult, Vulnerability, CVECache, AppAudit
-│   │   └── entities/              # Room-Entities
-│   ├── network/
-│   │   ├── NvdApiService.kt
-│   │   ├── CisaApiService.kt
-│   │   ├── OsvApiService.kt
-│   │   └── dto/                   # Moshi-DTOs
-│   ├── repository/
-│   │   ├── ScanRepository.kt
-│   │   ├── VulnerabilityRepository.kt
-│   │   └── SettingsRepository.kt
-│   ├── worker/
-│   │   └── AutoScanWorker.kt      # WorkManager Auto-Scan
-│   └── receiver/
-│       └── BootReceiver.kt        # Boot-Empfänger
+│   ├── db/                        # Room-Datenbank, DAOs, Entities
+│   ├── network/                   # NVD, CISA, OSV API Services + DTOs
+│   ├── repository/                # ScanRepository, VulnerabilityRepository, SettingsRepository
+│   ├── worker/                    # AutoScanWorker (WorkManager)
+│   └── receiver/                  # BootReceiver
 ├── domain/
 │   ├── model/                     # VulnerabilityEntry, ScanResult, AppAudit, etc.
-│   └── scanner/
-│       ├── SystemInfoScanner.kt   # Modul 1
-│       ├── AppPermissionAuditor.kt# Modul 2
-│       ├── NetworkSecurityScanner.kt # Modul 3
-│       ├── DeviceHardeningChecker.kt # Modul 4
-│       ├── StorageSecurityScanner.kt # Modul 5
-│       ├── ZeroDayCorrelator.kt   # Modul 6 (NVD + CISA KEV)
-│       ├── MalwareIndicatorScanner.kt # Modul 7
-│       ├── SecurityScanManager.kt # Koordination aller Module
-│       └── ScanForegroundService.kt
+│   └── scanner/                   # 8 Scanner-Module + SecurityScanManager
 └── ui/
-    ├── theme/                     # AppTheme, Color, Typography
+    ├── theme/                     # AppTheme, Color, Typography (Dark/AMOLED)
     ├── components/                # SeverityBadge, ScoreGauge
-    ├── screens/
-    │   ├── HomeScreen.kt
-    │   ├── ScanScreen.kt
-    │   ├── ResultsScreen.kt
-    │   ├── DetailScreen.kt
-    │   ├── HistoryScreen.kt
-    │   ├── SettingsScreen.kt
-    │   └── OnboardingScreen.kt
+    ├── screens/                   # Home, Scan, Results, Detail, History, Settings, Onboarding
     ├── viewmodels/                # HomeVM, ScanVM, ResultsVM, HistoryVM, SettingsVM
-    └── navigation/
-        ├── Screen.kt
-        └── NavGraph.kt
+    └── navigation/                # AppNavGraph, Screen
 ```
 
 ---
 
-## Setup-Anleitung
+## Setup
 
 ### Voraussetzungen
 - Android Studio Ladybug (2024.2.1) oder neuer
 - JDK 17
 - Android SDK 35
 
-### Schritte
+### Build
 
-1. **Repository klonen / öffnen**
-   ```bash
-   cd AISecurityScanner
-   ```
+```bash
+# Debug
+./gradlew assembleDebug
 
-2. **In Android Studio öffnen**
-   - File → Open → Ordner `AISecurityScanner` auswählen
-   - Gradle Sync abwarten
-
-3. **Gradle Wrapper herunterladen**
-   ```bash
-   gradle wrapper --gradle-version 8.10.2
-   ```
-
-4. **Build**
-   ```bash
-   ./gradlew assembleDebug
-   ```
-
-5. **Release Build** (benötigt Keystore)
-   ```bash
-   ./gradlew assembleRelease
-   ```
-
----
-
-## Scanner-Module
-
-| # | Modul | Prüft |
-|---|-------|-------|
-| 1 | SystemInfoScanner | Android-Version, Patch-Level, SELinux, Verschlüsselung, Verified Boot |
-| 2 | AppPermissionAuditor | Berechtigungen, Sideloaded-Apps, Device-Admin, Accessibility |
-| 3 | NetworkSecurityScanner | WLAN-Sicherheit, VPN, Proxy, offene Ports, DoH |
-| 4 | DeviceHardeningChecker | Bildschirmsperre, USB-Debugging, Developer Options, Backup |
-| 5 | StorageSecurityScanner | Geräteverschlüsselung, Benutzerzertifikate, externe Log-Dateien |
-| 6 | ZeroDayCorrelator | NVD-CVEs, CISA KEV, CVSS v3.1 Scoring |
-| 7 | MalwareIndicatorScanner | Bekannte Malware-Packages, Accessibility-Missbrauch |
+# Release (benötigt Keystore-Konfiguration)
+./gradlew assembleRelease
+```
 
 ---
 
 ## Externe Datenquellen
 
-| Quelle | URL | Typ |
-|--------|-----|-----|
-| NVD (NIST) | services.nvd.nist.gov | REST API |
-| CISA KEV | cisa.gov/...known_exploited_vulnerabilities.json | REST API |
-| OSV.dev | api.osv.dev | REST API |
+| Quelle     | Typ      | Zweck                                    |
+|------------|----------|------------------------------------------|
+| NVD (NIST) | REST API | Android-CVEs mit CVSS v3.1 Scoring       |
+| CISA KEV   | REST API | Aktiv ausgenutzte Schwachstellen         |
+| OSV.dev    | REST API | Open-Source Vulnerability Database       |
 
 ---
 
-## Sicherheitsfeatures der App selbst
+## Sicherheitsfeatures der App
 
-- **FLAG_SECURE** auf allen Screens (kein Screenshot/Screen-Recording)
-- **SQLCipher** für verschlüsselte Room-Datenbank
-- **TLS 1.2+** erzwungen, kein HTTP-Traffic (`network_security_config.xml`)
+- **FLAG_SECURE** – reaktiv konfigurierbar; verhindert Screenshots/Screen-Recording
+- **SQLCipher** – verschlüsselte Room-Datenbank
+- **TLS 1.2+** erzwungen, kein HTTP (`network_security_config.xml`)
 - **ProGuard/R8** Obfuskierung im Release-Build
-- **allowBackup=false** – keine Cloud-Backups sensibler Daten
-- **DataStore** für verschlüsselte Einstellungen
+- **allowBackup=false** – keine Cloud-Backups
+- **Keine Telemetrie** – alle Daten bleiben auf dem Gerät
+
+---
+
+## Score-Berechnung
+
+Der Sicherheits-Score (0–100) verwendet **Diminishing Returns**:
+- Jede Schwachstelle reduziert den Score um einen Prozentsatz des *verbleibenden* Scores
+- Dadurch bleibt der Score bei vielen mittleren Befunden realistisch (z. B. 17× MITTEL ≈ 50/100)
+- Der Score aktualisiert sich automatisch nach jedem Scan auf dem Dashboard
+
+| Schweregrad | Basis-Reduktion | mit aktiver Ausnutzung |
+|-------------|-----------------|------------------------|
+| KRITISCH    | 11 %            | 14 %                   |
+| HOCH        | 6 %             | 8 %                    |
+| MITTEL      | 4 %             | 4 %                    |
+| NIEDRIG     | 1,5 %           | 1,5 %                  |
 
 ---
 
 ## Berechtigungen
 
-| Berechtigung | Zweck |
-|-------------|-------|
-| INTERNET | CVE-Datenbank-Abfragen |
-| ACCESS_NETWORK_STATE | Netzwerkstatus-Prüfung |
-| ACCESS_WIFI_STATE | WLAN-Sicherheitsprotokoll |
-| QUERY_ALL_PACKAGES | App-Berechtigungs-Audit |
-| PACKAGE_USAGE_STATS | Hintergrundaktivitäts-Analyse (manuell zu gewähren) |
-| POST_NOTIFICATIONS | Kritische Sicherheitswarnungen |
-| FOREGROUND_SERVICE | Scan-Service |
-
----
-
-## Qualitätsprüfliste
-
-- [x] Kein hardcodierter Text (alle Strings in `strings.xml`)
-- [x] Kein sensitiver Wert im Klartext
-- [x] `network_security_config.xml` verhindert HTTP
-- [x] Kein Memory Leak (keine Activity-Referenzen in ViewModels)
-- [x] Alle Permissions erklärt im Onboarding
-- [x] Graceful Degradation bei fehlenden Permissions
-- [x] CVSS-Score nach Standard v3.1
-- [x] Dark Mode + AMOLED auf allen Screens
-- [x] TalkBack: Alle interaktiven Elemente haben `contentDescription`
-- [x] FLAG_SECURE gegen Screenshot-Angriffe
+| Berechtigung         | Zweck                                        |
+|----------------------|----------------------------------------------|
+| INTERNET             | CVE-Datenbank-Abfragen                       |
+| ACCESS_NETWORK_STATE | Netzwerkstatus-Prüfung                       |
+| ACCESS_WIFI_STATE    | WLAN-Sicherheitsprotokoll (SSID, WPA3 etc.)  |
+| QUERY_ALL_PACKAGES   | App-Berechtigungs-Audit                      |
+| PACKAGE_USAGE_STATS  | Hintergrundaktivitäts-Analyse                |
+| POST_NOTIFICATIONS   | Kritische Sicherheitswarnungen               |
+| FOREGROUND_SERVICE   | Scan-Service                                 |
