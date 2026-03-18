@@ -18,10 +18,13 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+    fun provideAppDatabase(
+        @ApplicationContext context: Context,
+        keyProvider: DatabaseKeyProvider
+    ): AppDatabase {
         // Native SQLCipher-Bibliothek laden (Pflicht für sqlcipher-android)
         System.loadLibrary("sqlcipher")
-        val passphrase = "aisecurity_db_key".toByteArray()
+        val passphrase = keyProvider.getOrCreatePassphrase()
         val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(
             context,
@@ -29,7 +32,7 @@ object DatabaseModule {
             "aisecurity_scanner.db"
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration()
+            .addMigrations(AppDatabase.MIGRATION_2_3)
             .build()
     }
 
