@@ -89,7 +89,7 @@
         <!-- Boot-Empfänger für Auto-Scan -->
         <receiver
             android:name=".data.receiver.BootReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
