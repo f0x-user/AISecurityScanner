@@ -65,6 +65,11 @@ object ScannerModule {
 
     @Provides
     @Singleton
+    fun providePlayIntegrityScanner(@ApplicationContext context: Context): PlayIntegrityScanner =
+        PlayIntegrityScanner(context)
+
+    @Provides
+    @Singleton
     fun provideSecurityScanManager(
         systemInfoScanner: SystemInfoScanner,
         appPermissionAuditor: AppPermissionAuditor,
@@ -75,6 +80,7 @@ object ScannerModule {
         malwareIndicatorScanner: MalwareIndicatorScanner,
         privacyHardwareScanner: PrivacyHardwareScanner,
         passwordLeakScanner: PasswordLeakScanner,
+        playIntegrityScanner: PlayIntegrityScanner,
         debugLogger: DebugLogger
     ): SecurityScanManager = SecurityScanManager(
         systemInfoScanner,
@@ -86,6 +92,7 @@ object ScannerModule {
         malwareIndicatorScanner,
         privacyHardwareScanner,
         passwordLeakScanner,
+        playIntegrityScanner,
         debugLogger
     )
 }

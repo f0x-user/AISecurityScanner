@@ -122,6 +122,9 @@ dependencies {
     // Biometric
     implementation(libs.biometric)
 
+    // Play Integrity
+    implementation(libs.play.integrity)
+
     // Security
     implementation(libs.security.crypto)
     implementation(libs.sqlcipher)

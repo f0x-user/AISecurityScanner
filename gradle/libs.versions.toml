@@ -18,6 +18,7 @@ datastore = "1.1.2"
 securityCrypto = "1.1.0-alpha06"
 sqlcipher = "4.6.1"
 biometric = "1.1.0"
+playIntegrity = "1.4.0"
 accompanist = "0.36.0"
 coil = "2.7.0"
 jsoup = "1.18.3"
@@ -68,6 +69,9 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 # Biometric
 biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+
+# Play Integrity
+play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
 
 # Security
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
