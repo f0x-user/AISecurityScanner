@@ -1,10 +1,7 @@
 package com.aisecurity.scanner.ui.screens
 
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -80,18 +77,13 @@ fun OnboardingScreen(
 ) {
     var currentStep by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
-    val totalSteps = 5
+    val totalSteps = 4
     val dbState by viewModel.dbState.collectAsState()
 
-    // DB-Download automatisch starten wenn Schritt 3 angezeigt wird
+    // DB-Download automatisch starten wenn Schritt 2 angezeigt wird
     LaunchedEffect(currentStep) {
-        if (currentStep == 3) viewModel.startDatabaseDownload()
+        if (currentStep == 2) viewModel.startDatabaseDownload()
     }
-
-    // Permission-Launcher für POST_NOTIFICATIONS (Android 13+)
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { /* Ergebnis wird durch den Nutzer im nächsten Schritt sichtbar */ }
 
     Scaffold { padding ->
         Column(
@@ -131,38 +123,8 @@ fun OnboardingScreen(
                             )
                         }
                     )
-                    2 -> PermissionStep(
-                        icon = Icons.Default.Notifications,
-                        title = stringResource(R.string.onboarding_notifications_title),
-                        reason = stringResource(R.string.onboarding_notifications_reason),
-                        denyConsequence = stringResource(R.string.onboarding_notifications_deny),
-                        onGrant = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                notificationPermissionLauncher.launch(
-                                    android.Manifest.permission.POST_NOTIFICATIONS
-                                )
-                            } else {
-                                // Vor Android 13: direkt zu den App-Benachrichtigungseinstellungen
-                                context.startActivity(
-                                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                )
-                            }
-                        },
-                        secondaryAction = {
-                            // Immer verfügbar: direkt zu den System-Einstellungen
-                            context.startActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                            )
-                        }
-                    )
-                    3 -> DatabaseUpdateStep(dbState = dbState)
-                    4 -> ReadyStep()
+                    2 -> DatabaseUpdateStep(dbState = dbState)
+                    3 -> ReadyStep()
                 }
             }
 

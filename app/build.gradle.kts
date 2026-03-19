@@ -100,9 +100,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
-    implementation(libs.hilt.work)
-    ksp(libs.hilt.work.compiler)
-
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -118,9 +115,6 @@ dependencies {
 
     // Coroutines
     implementation(libs.coroutines.android)
-
-    // WorkManager
-    implementation(libs.work.runtime.ktx)
 
     // DataStore
     implementation(libs.datastore.preferences)
