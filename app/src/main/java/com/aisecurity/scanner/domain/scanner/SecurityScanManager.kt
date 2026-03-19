@@ -31,8 +31,6 @@ class SecurityScanManager @Inject constructor(
     var lastScanLog: List<String> = emptyList()
         private set
 
-    private var scanJob: Job? = null
-
     suspend fun startScan(): ScanResult = coroutineScope {
         val startTime = System.currentTimeMillis()
         val scanId = UUID.randomUUID().toString()
@@ -250,7 +248,6 @@ class SecurityScanManager @Inject constructor(
     }
 
     fun cancelScan() {
-        scanJob?.cancel()
         _progress.value = ScanProgress(status = ScanStatus.CANCELLED)
     }
 
