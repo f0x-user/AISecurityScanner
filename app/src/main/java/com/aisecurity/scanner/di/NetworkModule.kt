@@ -2,7 +2,6 @@ package com.aisecurity.scanner.di
 
 import com.aisecurity.scanner.data.network.CisaApiService
 import com.aisecurity.scanner.data.network.NvdApiService
-import com.aisecurity.scanner.data.network.OsvApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -65,16 +64,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("osv")
-    fun provideOsvRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
-            .baseUrl("https://api.osv.dev/")
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-
-    @Provides
-    @Singleton
     fun provideNvdApiService(@Named("nvd") retrofit: Retrofit): NvdApiService =
         retrofit.create(NvdApiService::class.java)
 
@@ -82,9 +71,4 @@ object NetworkModule {
     @Singleton
     fun provideCisaApiService(@Named("cisa") retrofit: Retrofit): CisaApiService =
         retrofit.create(CisaApiService::class.java)
-
-    @Provides
-    @Singleton
-    fun provideOsvApiService(@Named("osv") retrofit: Retrofit): OsvApiService =
-        retrofit.create(OsvApiService::class.java)
 }
