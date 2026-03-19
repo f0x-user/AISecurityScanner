@@ -39,9 +39,11 @@ class PlayIntegrityScanner @Inject constructor(
                     cvssVector = "CVSS:3.1/AV:L/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N",
                     affectedComponent = "Google Play Integrity",
                     description = "Die Play Integrity API konnte nicht ausgeführt werden. " +
-                        "Dies kann auf ein nicht-zertifiziertes Gerät, einen Emulator oder " +
-                        "fehlende Google Play Services hinweisen.",
-                    impact = "Keine unabhängige Verifikation der Geräteintegrität möglich.",
+                        "Dies kann auf ein nicht-zertifiziertes Gerät, einen Emulator, " +
+                        "fehlende Google Play Services, Root/Magisk oder einen gesperrten " +
+                        "Play-Store-Account hinweisen.",
+                    impact = "Keine unabhängige Verifikation der Geräteintegrität möglich. " +
+                        "Root oder Magisk könnten Sicherheitsmechanismen aushebeln.",
                     remediation = RemediationSteps(
                         priority = Priority.NORMAL,
                         steps = listOf(
@@ -98,7 +100,28 @@ class PlayIntegrityScanner @Inject constructor(
     private fun interpretIntegrityPayload(payload: Map<String, Any>): List<VulnerabilityEntry> {
         val findings = mutableListOf<VulnerabilityEntry>()
         val deviceVerdict = payload["deviceIntegrity"]?.toString() ?: ""
-        if (!deviceVerdict.contains("MEETS_DEVICE_INTEGRITY")) {
+        if (deviceVerdict.contains("MEETS_DEVICE_INTEGRITY")) {
+            findings += VulnerabilityEntry(
+                id = "INT-003",
+                title = "Geräte-Integrität bestätigt (Play Integrity)",
+                severity = Severity.INFO,
+                cvssScore = 0f,
+                cvssVector = "",
+                affectedComponent = "Google Play Device Integrity",
+                description = "Google Play Integrity bestätigt dass dieses Gerät die " +
+                    "Integritätsanforderungen erfüllt. Kein Hinweis auf Root, " +
+                    "entsperrten Bootloader oder manipuliertes System-Image.",
+                impact = "Keine bekannte Beeinträchtigung der Geräteintegrität.",
+                remediation = RemediationSteps(
+                    priority = Priority.LOW,
+                    steps = emptyList(),
+                    automatable = false,
+                    officialDocUrl = "https://developer.android.com/google/play/integrity/verdicts",
+                    estimatedTime = ""
+                ),
+                source = "PlayIntegrityScanner"
+            )
+        } else {
             findings += VulnerabilityEntry(
                 id = "INT-002",
                 title = "Geräte-Integrität nicht bestätigt (Play Integrity)",
