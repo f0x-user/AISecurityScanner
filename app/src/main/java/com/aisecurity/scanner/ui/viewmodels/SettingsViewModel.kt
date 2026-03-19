@@ -11,6 +11,7 @@ import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.di.NvdKeyProvider
 import com.aisecurity.scanner.util.BiometricAuthManager
 import com.aisecurity.scanner.util.DebugLogger
+import com.aisecurity.scanner.util.PdfExporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,7 +30,8 @@ class SettingsViewModel @Inject constructor(
     private val scanRepository: ScanRepository,
     private val debugLogger: DebugLogger,
     private val nvdKeyProvider: NvdKeyProvider,
-    val biometricAuthManager: BiometricAuthManager
+    val biometricAuthManager: BiometricAuthManager,
+    private val pdfExporter: PdfExporter
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -67,6 +69,22 @@ class SettingsViewModel @Inject constructor(
 
     fun updateBiometricLock(enabled: Boolean) = viewModelScope.launch {
         settingsRepository.updateBiometricLock(enabled)
+    }
+
+    fun exportAsPdf(context: Context) = viewModelScope.launch {
+        val scan = scanRepository.getLatestScan() ?: return@launch
+        runCatching {
+            val file = pdfExporter.export(scan)
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "AI Security Scanner – Sicherheitsbericht")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(Intent.createChooser(intent, "PDF exportieren"))
+        }
     }
 
     fun exportLastScan(context: Context) = viewModelScope.launch {

@@ -8,4 +8,12 @@
     <files-path
         name="debug_logs_internal"
         path="debug/" />
+    <!-- Scan-Berichte (TXT) im Cache -->
+    <cache-path
+        name="scan_reports"
+        path="." />
+    <!-- PDF-Berichte im internen Speicher -->
+    <files-path
+        name="pdf_reports"
+        path="." />
 </paths>

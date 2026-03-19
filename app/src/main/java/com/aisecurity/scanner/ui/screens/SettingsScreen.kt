@@ -216,6 +216,16 @@ fun SettingsScreen(
             SettingsSectionHeader("Export", Icons.Default.FileDownload)
 
             Button(
+                onClick = { viewModel.exportAsPdf(context) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Icon(Icons.Default.PictureAsPdf, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Als PDF exportieren")
+            }
+            OutlinedButton(
                 onClick = { viewModel.exportLastScan(context) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -223,7 +233,7 @@ fun SettingsScreen(
             ) {
                 Icon(Icons.Default.FileDownload, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Letzten Scan exportieren")
+                Text("Als Text exportieren")
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
