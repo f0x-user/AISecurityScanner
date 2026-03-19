@@ -379,7 +379,6 @@ class DeviceHardeningChecker @Inject constructor(private val context: Context) {
         } else null
     }
 
-    // ─── FORENSIC-only ────────────────────────────────────────────────────────
 
     private fun checkAutoFillSecurity(): VulnerabilityEntry? {
         val autofillService = try {

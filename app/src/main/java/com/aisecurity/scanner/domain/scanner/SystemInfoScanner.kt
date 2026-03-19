@@ -321,7 +321,6 @@ class SystemInfoScanner @Inject constructor(private val context: Context) {
         } else null
     }
 
-    // ─── FORENSIC-only ────────────────────────────────────────────────────────
 
     private fun checkBuildIntegrity(): VulnerabilityEntry? {
         val buildType = getSystemProperty("ro.build.type") ?: return null

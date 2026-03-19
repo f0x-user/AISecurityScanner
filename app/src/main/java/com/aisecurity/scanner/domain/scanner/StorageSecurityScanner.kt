@@ -183,7 +183,6 @@ class StorageSecurityScanner @Inject constructor(private val context: Context) {
         } else null
     }
 
-    // ─── FORENSIC-only ────────────────────────────────────────────────────────
 
     private fun checkWorldReadableFiles(): VulnerabilityEntry? {
         return try {

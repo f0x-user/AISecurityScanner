@@ -357,7 +357,6 @@ class NetworkSecurityScanner @Inject constructor(private val context: Context) {
         } else null
     }
 
-    // ─── FORENSIC-only ────────────────────────────────────────────────────────
 
     private fun checkInsecureTlsSettings(): VulnerabilityEntry? {
         // Prüfe ob schwache TLS-Version (SSLv3/TLS 1.0) noch systemweit erlaubt ist
