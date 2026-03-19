@@ -279,6 +279,35 @@ class AppPermissionAuditor @Inject constructor(private val context: Context) {
                 )
         }
 
+        // Sideloaded Apps mit veraltetem targetSdkVersion
+        val outdatedSdkApps = audits.filter { it.isSideloaded && it.targetSdkVersion in 1..27 }
+        if (outdatedSdkApps.isNotEmpty()) {
+            findings += VulnerabilityEntry(
+                id = "APP-006",
+                title = "${outdatedSdkApps.size} sideloaded App(s) mit veraltetem targetSdkVersion",
+                severity = Severity.MEDIUM,
+                cvssScore = 5.3f,
+                cvssVector = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N",
+                affectedComponent = "App-Sicherheitsstandards",
+                affectedApps = outdatedSdkApps.map { "${it.appName} (API ${it.targetSdkVersion})" },
+                description = "Sideloaded Apps mit targetSdkVersion < 28 umgehen neuere Android-Sicherheitsfeatures " +
+                    "wie Scoped Storage, FLAG_SECURE-Erzwingung und sichere Netzwerkkonfiguration.",
+                impact = "Apps können auf nicht-sandboxed-Daten zugreifen und ältere, unsichere APIs nutzen.",
+                remediation = RemediationSteps(
+                    priority = Priority.NORMAL,
+                    steps = listOf(
+                        "Aktualisiere oder ersetze betroffene Apps durch aktuelle Versionen.",
+                        "Falls eine App keine Updates erhält, erwäge sie zu deinstallieren.",
+                        "Installiere Apps bevorzugt aus dem Play Store – dort werden Mindest-targetSdk-Anforderungen durchgesetzt."
+                    ),
+                    automatable = false,
+                    officialDocUrl = "https://developer.android.com/google/play/requirements/target-sdk",
+                    estimatedTime = "~10 Minuten"
+                ),
+                source = "AppPermissionAuditor"
+            )
+        }
+
         val sideloadedApps = audits.filter { it.isSideloaded }
         val sideloadedCount = sideloadedApps.size
         if (sideloadedCount > 0) {
