@@ -39,14 +39,17 @@ data class ScanDelta(
     val persistentFindings: List<VulnerabilityEntry>
 )
 
+private fun VulnerabilityEntry.comparisonKey(): String =
+    if (id.startsWith("CVE-")) id else "$id:$cvssScore"
+
 fun ScanResult.compareTo(previous: ScanResult): ScanDelta {
-    val currentIds = vulnerabilities.map { it.id }.toSet()
-    val previousIds = previous.vulnerabilities.map { it.id }.toSet()
+    val currentKeys = vulnerabilities.map { it.comparisonKey() }.toSet()
+    val previousKeys = previous.vulnerabilities.map { it.comparisonKey() }.toSet()
     return ScanDelta(
         scoreDelta = overallScore - previous.overallScore,
-        newFindings = vulnerabilities.filter { it.id !in previousIds },
-        resolvedFindings = previous.vulnerabilities.filter { it.id !in currentIds },
-        persistentFindings = vulnerabilities.filter { it.id in previousIds }
+        newFindings = vulnerabilities.filter { it.comparisonKey() !in previousKeys },
+        resolvedFindings = previous.vulnerabilities.filter { it.comparisonKey() !in currentKeys },
+        persistentFindings = vulnerabilities.filter { it.comparisonKey() in previousKeys }
     )
 }
 
