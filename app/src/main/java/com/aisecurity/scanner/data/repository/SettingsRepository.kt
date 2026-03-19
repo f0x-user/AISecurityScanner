@@ -87,4 +87,6 @@ class SettingsRepository @Inject constructor(
     suspend fun updateDebugMode(enabled: Boolean) = dataStore.edit { it[KEY_DEBUG_MODE] = enabled }
     suspend fun updateScreenshotAllowed(enabled: Boolean) = dataStore.edit { it[KEY_SCREENSHOT_ALLOWED] = enabled }
     suspend fun updateBiometricLock(enabled: Boolean) = dataStore.edit { it[KEY_BIOMETRIC_LOCK] = enabled }
+    suspend fun updateUpdateInterval(interval: String) = dataStore.edit { it[KEY_UPDATE_INTERVAL] = interval }
+    suspend fun updateIncludeRemediation(enabled: Boolean) = dataStore.edit { it[KEY_INCLUDE_REMEDIATION] = enabled }
 }

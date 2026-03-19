@@ -62,6 +62,8 @@ class SettingsViewModel @Inject constructor(
     fun updateExportFormat(format: String) = viewModelScope.launch { settingsRepository.updateExportFormat(format) }
     fun updateLanguage(language: String) = viewModelScope.launch { settingsRepository.updateLanguage(language) }
     fun updateFontSize(size: String) = viewModelScope.launch { settingsRepository.updateFontSize(size) }
+    fun updateUpdateInterval(interval: String) = viewModelScope.launch { settingsRepository.updateUpdateInterval(interval) }
+    fun updateIncludeRemediation(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateIncludeRemediation(enabled) }
 
     fun updateScreenshotAllowed(enabled: Boolean) = viewModelScope.launch {
         settingsRepository.updateScreenshotAllowed(enabled)
