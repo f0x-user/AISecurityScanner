@@ -32,6 +32,24 @@ data class ScanResult(
         get() = if (storedActivelyExploited >= 0) storedActivelyExploited else vulnerabilities.count { it.isActivelyExploited }
 }
 
+data class ScanDelta(
+    val scoreDelta: Int,
+    val newFindings: List<VulnerabilityEntry>,
+    val resolvedFindings: List<VulnerabilityEntry>,
+    val persistentFindings: List<VulnerabilityEntry>
+)
+
+fun ScanResult.compareTo(previous: ScanResult): ScanDelta {
+    val currentIds = vulnerabilities.map { it.id }.toSet()
+    val previousIds = previous.vulnerabilities.map { it.id }.toSet()
+    return ScanDelta(
+        scoreDelta = overallScore - previous.overallScore,
+        newFindings = vulnerabilities.filter { it.id !in previousIds },
+        resolvedFindings = previous.vulnerabilities.filter { it.id !in currentIds },
+        persistentFindings = vulnerabilities.filter { it.id in previousIds }
+    )
+}
+
 enum class ScanStatus {
     IDLE, RUNNING, COMPLETED, FAILED, CANCELLED
 }

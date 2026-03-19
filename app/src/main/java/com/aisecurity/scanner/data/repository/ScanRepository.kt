@@ -62,6 +62,25 @@ class ScanRepository @Inject constructor(
         )
     }
 
+    suspend fun getAllScansOnce(): List<ScanResult> = withContext(Dispatchers.IO) {
+        scanResultDao.getAllScansOnce().map { entity ->
+            ScanResult(
+                id = entity.id,
+                timestamp = Instant.ofEpochMilli(entity.timestamp),
+                overallScore = entity.overallScore,
+                scanDepth = entity.scanDepth,
+                durationMs = entity.durationMs,
+                vulnerabilities = emptyList(),
+                storedCritical = entity.criticalCount,
+                storedHigh = entity.highCount,
+                storedMedium = entity.mediumCount,
+                storedLow = entity.lowCount,
+                storedZeroDay = entity.zeroDayCount,
+                storedActivelyExploited = entity.activelyExploitedCount,
+            )
+        }
+    }
+
     suspend fun getLatestScan(): ScanResult? = withContext(Dispatchers.IO) {
         val entity = scanResultDao.getLatestScan() ?: return@withContext null
         getScanWithDetails(entity.id)

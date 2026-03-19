@@ -10,6 +10,9 @@ interface ScanResultDao {
     @Query("SELECT * FROM scan_results ORDER BY timestamp DESC")
     fun getAllScans(): Flow<List<ScanResultEntity>>
 
+    @Query("SELECT * FROM scan_results ORDER BY timestamp DESC")
+    suspend fun getAllScansOnce(): List<ScanResultEntity>
+
     @Query("SELECT * FROM scan_results WHERE id = :id LIMIT 1")
     suspend fun getScanById(id: String): ScanResultEntity?
 
