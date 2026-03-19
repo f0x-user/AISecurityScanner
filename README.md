@@ -142,6 +142,21 @@ Der Sicherheits-Score (0–100) verwendet **Diminishing Returns**:
 
 ---
 
+## Release-Signing
+
+Für signierte Release-APKs über GitHub Actions müssen folgende
+Repository-Secrets gesetzt sein (Settings → Secrets and variables → Actions):
+
+| Secret | Inhalt |
+|---|---|
+| `KEYSTORE_BASE64` | Base64-kodierter Keystore: `base64 -w 0 keystore.jks` |
+| `KEYSTORE_PASSWORD` | Passwort des Keystores |
+| `KEY_ALIAS` | Alias des Signing-Keys |
+| `KEY_PASSWORD` | Passwort des Keys |
+
+Ohne diese Secrets baut der Workflow trotzdem durch, signiert die APK
+aber mit dem Debug-Keystore (nicht für Distribution geeignet).
+
 ## Berechtigungen
 
 | Berechtigung         | Zweck                                        |

@@ -29,12 +29,18 @@ jobs:
 
       - name: Keystore aus Secret dekodieren
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+            echo "KEYSTORE_AVAILABLE=true" >> $GITHUB_ENV
+          else
+            echo "KEYSTORE_AVAILABLE=false" >> $GITHUB_ENV
+            echo "⚠️ Kein Keystore-Secret gesetzt – Release wird mit Debug-Signing gebaut"
+          fi
 
       - name: Release-APK bauen und signieren
         run: ./gradlew assembleRelease --no-daemon
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PATH: ${{ env.KEYSTORE_AVAILABLE == 'true' && format('{0}/keystore.jks', github.workspace) || '' }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
