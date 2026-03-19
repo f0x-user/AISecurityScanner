@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aisecurity.scanner.data.repository.AppSettings
 import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.ui.navigation.AppNavGraph
 import com.aisecurity.scanner.ui.navigation.Screen
@@ -14,6 +15,7 @@ import com.aisecurity.scanner.ui.theme.AISecurityTheme
 import com.aisecurity.scanner.ui.theme.AppTheme
 import com.aisecurity.scanner.util.BiometricAuthManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -44,49 +46,55 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val settings by settingsRepository.settings.collectAsStateWithLifecycle(
-                initialValue = com.aisecurity.scanner.data.repository.AppSettings()
-            )
+            // null = DataStore noch nicht geladen; non-null = echte Settings verfügbar
+            val settings: AppSettings? by settingsRepository.settings
+                .map { it as AppSettings? }
+                .collectAsStateWithLifecycle(initialValue = null)
 
             // Reaktiver Screenshot-Schutz basierend auf Einstellung
             SideEffect {
-                if (settings.screenshotAllowed) {
+                if (settings?.screenshotAllowed == true) {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 } else {
                     window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 }
             }
 
-            val appTheme = when (settings.theme) {
+            val appTheme = when (settings?.theme) {
                 "Hell" -> AppTheme.LIGHT
                 "Dunkel" -> AppTheme.DARK
                 "AMOLED" -> AppTheme.AMOLED
                 else -> AppTheme.SYSTEM
             }
 
-            val startDestination = if (settings.onboardingCompleted)
-                Screen.Home.route
-            else
-                Screen.Onboarding.route
-
-            LaunchedEffect(settings.biometricLock) {
-                currentBiometricLock = settings.biometricLock
-                if (!settings.biometricLock) {
-                    isAuthenticated.value = true
-                } else if (!isAuthenticated.value) {
-                    biometricAuthManager.authenticate(
-                        activity = this@MainActivity,
-                        onSuccess = { isAuthenticated.value = true },
-                        onFailure = { finish() }
-                    )
-                }
-            }
-
             AISecurityTheme(
                 appTheme = appTheme,
-                dynamicColor = settings.dynamicColor,
-                fontSize = settings.fontSize
+                dynamicColor = settings?.dynamicColor ?: true,
+                fontSize = settings?.fontSize ?: "Standard"
             ) {
+                // DataStore noch nicht geladen → nichts rendern (verhindert Auth-Bypass)
+                if (settings == null) return@AISecurityTheme
+
+                val realSettings = settings!!
+
+                val startDestination = if (realSettings.onboardingCompleted)
+                    Screen.Home.route
+                else
+                    Screen.Onboarding.route
+
+                LaunchedEffect(realSettings.biometricLock) {
+                    currentBiometricLock = realSettings.biometricLock
+                    if (!realSettings.biometricLock) {
+                        isAuthenticated.value = true
+                    } else if (!isAuthenticated.value) {
+                        biometricAuthManager.authenticate(
+                            activity = this@MainActivity,
+                            onSuccess = { isAuthenticated.value = true },
+                            onFailure = { finish() }
+                        )
+                    }
+                }
+
                 if (isAuthenticated.value) {
                     AppNavGraph(startDestination = startDestination)
                 }
