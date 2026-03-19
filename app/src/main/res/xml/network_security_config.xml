@@ -24,9 +24,18 @@
         </trust-anchors>
     </domain-config>
 
-    <!-- OSV.dev API -->
+    <!-- Have I Been Pwned API -->
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">api.osv.dev</domain>
+        <domain includeSubdomains="true">haveibeenpwned.com</domain>
+        <domain includeSubdomains="true">api.pwnedpasswords.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Google Play Integrity -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">play.googleapis.com</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
