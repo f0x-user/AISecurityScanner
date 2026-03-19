@@ -13,7 +13,10 @@ class PasswordLeakScanner @Inject constructor(
 ) {
     suspend fun scan(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val accounts = getDeviceAccounts()
-        if (accounts.isEmpty()) return@withContext emptyList()
+        val accountInfo = if (accounts.isEmpty())
+            "Keine Konten automatisch erkannt – prüfe manuell deine E-Mail-Adressen."
+        else
+            "Gefundene Konten: ${accounts.joinToString(", ")}"
 
         listOf(
             VulnerabilityEntry(
@@ -24,7 +27,7 @@ class PasswordLeakScanner @Inject constructor(
                 affectedComponent = "Konto-Credentials",
                 affectedApps = accounts,
                 description = "Prüfe ob deine E-Mail-Adressen in bekannten Datenlecks auftauchen. " +
-                    "Gefundene Konten: ${accounts.joinToString(", ")}",
+                    accountInfo,
                 impact = "Kompromittierte Credentials ermöglichen Kontoübernahmen.",
                 remediation = RemediationSteps(
                     priority = Priority.NORMAL,
