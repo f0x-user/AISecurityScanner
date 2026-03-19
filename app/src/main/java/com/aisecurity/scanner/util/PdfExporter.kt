@@ -8,6 +8,8 @@ import com.aisecurity.scanner.domain.model.ScanResult
 import com.aisecurity.scanner.domain.model.Severity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -22,7 +24,7 @@ class PdfExporter @Inject constructor(
     private val margin = 40f
     private val lineHeight = 16f
 
-    fun export(scanResult: ScanResult): File {
+    suspend fun export(scanResult: ScanResult): File = withContext(Dispatchers.IO) {
         val doc = PdfDocument()
         var pageNum = 1
         var y = margin + 20f
@@ -176,6 +178,6 @@ class PdfExporter @Inject constructor(
         val file = File(context.filesDir, "security_report_${System.currentTimeMillis()}.pdf")
         file.outputStream().use { doc.writeTo(it) }
         doc.close()
-        return file
+        file
     }
 }
