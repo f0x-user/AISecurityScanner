@@ -55,8 +55,14 @@ class PdfExporter @Inject constructor(
             } else page to canvas
         }
 
-        fun drawText(canvas: Canvas, text: String, paint: Paint, x: Float = margin) {
-            // Wrap long lines
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+            .withZone(ZoneId.systemDefault())
+
+        var (currentPage, canvas) = newPage()
+
+        // Zeichnet Text mit Zeilenumbruch und Seitenumbruch-Check.
+        // Liest und schreibt currentPage/canvas direkt aus dem äußeren Scope.
+        fun drawWrappedText(text: String, paint: Paint, x: Float = margin) {
             val maxWidth = pageWidth - margin * 2
             val words = text.split(" ")
             val sb = StringBuilder()
@@ -65,6 +71,8 @@ class PdfExporter @Inject constructor(
                 if (paint.measureText(test) > maxWidth) {
                     canvas.drawText(sb.toString(), x, y, paint)
                     y += lineHeight
+                    val brk = checkPageBreak(canvas, currentPage)
+                    currentPage = brk.first; canvas = brk.second
                     sb.clear()
                     sb.append(word)
                 } else {
@@ -77,11 +85,6 @@ class PdfExporter @Inject constructor(
                 y += lineHeight
             }
         }
-
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-            .withZone(ZoneId.systemDefault())
-
-        var (currentPage, canvas) = newPage()
 
         // === Seite 1: Header & Zusammenfassung ===
         canvas.drawText("AI Security Scanner", margin, y, titlePaint)
@@ -150,12 +153,12 @@ class PdfExporter @Inject constructor(
                 }
                 val severityPaint = Paint().apply { isAntiAlias = true; textSize = 10f; color = severityColor; isFakeBoldText = true }
                 canvas.drawText("[${vuln.severity.label}]", margin, y, severityPaint)
-                drawText(canvas, vuln.title, headingPaint, margin + 60f)
+                drawWrappedText(vuln.title, headingPaint, margin + 60f)
                 y += 2f
                 canvas.drawText("CVSS: ${vuln.cvssScore} | ${vuln.affectedComponent}", margin, y, smallPaint)
                 y += lineHeight
 
-                drawText(canvas, vuln.description, bodyPaint)
+                drawWrappedText(vuln.description, bodyPaint)
                 y += 4f
 
                 if (vuln.remediation.steps.isNotEmpty()) {
@@ -164,7 +167,7 @@ class PdfExporter @Inject constructor(
                     vuln.remediation.steps.take(3).forEachIndexed { i, step ->
                         val check3 = checkPageBreak(canvas, currentPage)
                         currentPage = check3.first; canvas = check3.second
-                        drawText(canvas, "  ${i + 1}. $step", smallPaint)
+                        drawWrappedText("  ${i + 1}. $step", smallPaint)
                     }
                 }
                 y += lineHeight
