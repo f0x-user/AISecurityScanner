@@ -4,10 +4,9 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.*
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.ui.navigation.AppNavGraph
 import com.aisecurity.scanner.ui.navigation.Screen
@@ -25,6 +24,16 @@ class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var biometricAuthManager: BiometricAuthManager
+
+    private val isAuthenticated = mutableStateOf(false)
+    private var currentBiometricLock = false
+
+    override fun onStop() {
+        super.onStop()
+        if (currentBiometricLock) {
+            isAuthenticated.value = false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,15 +69,14 @@ class MainActivity : FragmentActivity() {
             else
                 Screen.Onboarding.route
 
-            var isAuthenticated by remember { mutableStateOf(!settings.biometricLock) }
-
             LaunchedEffect(settings.biometricLock) {
+                currentBiometricLock = settings.biometricLock
                 if (!settings.biometricLock) {
-                    isAuthenticated = true
-                } else if (!isAuthenticated) {
+                    isAuthenticated.value = true
+                } else if (!isAuthenticated.value) {
                     biometricAuthManager.authenticate(
                         activity = this@MainActivity,
-                        onSuccess = { isAuthenticated = true },
+                        onSuccess = { isAuthenticated.value = true },
                         onFailure = { finish() }
                     )
                 }
@@ -79,7 +87,7 @@ class MainActivity : FragmentActivity() {
                 dynamicColor = settings.dynamicColor,
                 fontSize = settings.fontSize
             ) {
-                if (isAuthenticated) {
+                if (isAuthenticated.value) {
                     AppNavGraph(startDestination = startDestination)
                 }
             }
