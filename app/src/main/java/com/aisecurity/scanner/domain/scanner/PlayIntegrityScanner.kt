@@ -98,10 +98,11 @@ class PlayIntegrityScanner @Inject constructor(
     }
 
     private fun interpretIntegrityPayload(payload: Map<String, Any>): List<VulnerabilityEntry> {
-        val findings = mutableListOf<VulnerabilityEntry>()
-        val deviceVerdict = payload["deviceIntegrity"]?.toString() ?: ""
-        if (deviceVerdict.contains("MEETS_DEVICE_INTEGRITY")) {
-            findings += VulnerabilityEntry(
+        if (payload.isEmpty()) return emptyList()
+        val deviceVerdict = payload["deviceIntegrity"]?.toString() ?: return emptyList()
+
+        return if (deviceVerdict.contains("MEETS_DEVICE_INTEGRITY")) {
+            listOf(VulnerabilityEntry(
                 id = "INT-003",
                 title = "Geräte-Integrität bestätigt (Play Integrity)",
                 severity = Severity.INFO,
@@ -120,9 +121,9 @@ class PlayIntegrityScanner @Inject constructor(
                     estimatedTime = ""
                 ),
                 source = "PlayIntegrityScanner"
-            )
+            ))
         } else {
-            findings += VulnerabilityEntry(
+            listOf(VulnerabilityEntry(
                 id = "INT-002",
                 title = "Geräte-Integrität nicht bestätigt (Play Integrity)",
                 severity = Severity.HIGH,
@@ -145,8 +146,7 @@ class PlayIntegrityScanner @Inject constructor(
                     estimatedTime = "~1-2 Stunden"
                 ),
                 source = "PlayIntegrityScanner"
-            )
+            ))
         }
-        return findings
     }
 }
