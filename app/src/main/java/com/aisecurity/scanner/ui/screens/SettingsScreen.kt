@@ -188,6 +188,28 @@ fun SettingsScreen(
                 onCheckedChange = viewModel::updateEncryptLocalData
             )
 
+            val biometricAvailable = remember { viewModel.biometricAuthManager.isAvailable() }
+            if (biometricAvailable) {
+                SettingsToggle(
+                    title = "Biometrische App-Sperre",
+                    subtitle = "App bei jedem Start mit Fingerabdruck oder Gesicht entsperren",
+                    checked = settings.biometricLock,
+                    onCheckedChange = viewModel::updateBiometricLock
+                )
+            } else {
+                ListItem(
+                    headlineContent = { Text("Biometrische App-Sperre") },
+                    supportingContent = {
+                        Text(
+                            "Keine kompatible Biometrie verfügbar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+                )
+            }
+
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             // === Export ===

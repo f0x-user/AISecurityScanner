@@ -23,7 +23,8 @@ data class AppSettings(
     val exportFormat: String = "PDF",
     val includeRemediation: Boolean = true,
     val onboardingCompleted: Boolean = false,
-    val debugMode: Boolean = false
+    val debugMode: Boolean = false,
+    val biometricLock: Boolean = false
 )
 
 @Singleton
@@ -46,6 +47,7 @@ class SettingsRepository @Inject constructor(
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val KEY_DEBUG_MODE = booleanPreferencesKey("debug_mode")
         val KEY_SCREENSHOT_ALLOWED = booleanPreferencesKey("screenshot_allowed")
+        val KEY_BIOMETRIC_LOCK = booleanPreferencesKey("biometric_lock")
     }
 
     val settings: Flow<AppSettings> = dataStore.data
@@ -66,7 +68,8 @@ class SettingsRepository @Inject constructor(
                 exportFormat = prefs[KEY_EXPORT_FORMAT] ?: "PDF",
                 includeRemediation = prefs[KEY_INCLUDE_REMEDIATION] ?: true,
                 onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
-                debugMode = prefs[KEY_DEBUG_MODE] ?: false
+                debugMode = prefs[KEY_DEBUG_MODE] ?: false,
+                biometricLock = prefs[KEY_BIOMETRIC_LOCK] ?: false
             )
         }
 
@@ -83,4 +86,5 @@ class SettingsRepository @Inject constructor(
     suspend fun updateFontSize(size: String) = dataStore.edit { it[KEY_FONT_SIZE] = size }
     suspend fun updateDebugMode(enabled: Boolean) = dataStore.edit { it[KEY_DEBUG_MODE] = enabled }
     suspend fun updateScreenshotAllowed(enabled: Boolean) = dataStore.edit { it[KEY_SCREENSHOT_ALLOWED] = enabled }
+    suspend fun updateBiometricLock(enabled: Boolean) = dataStore.edit { it[KEY_BIOMETRIC_LOCK] = enabled }
 }

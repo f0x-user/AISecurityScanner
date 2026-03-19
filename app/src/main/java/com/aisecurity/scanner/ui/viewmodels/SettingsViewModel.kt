@@ -9,6 +9,7 @@ import com.aisecurity.scanner.data.repository.AppSettings
 import com.aisecurity.scanner.data.repository.ScanRepository
 import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.di.NvdKeyProvider
+import com.aisecurity.scanner.util.BiometricAuthManager
 import com.aisecurity.scanner.util.DebugLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +28,8 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scanRepository: ScanRepository,
     private val debugLogger: DebugLogger,
-    private val nvdKeyProvider: NvdKeyProvider
+    private val nvdKeyProvider: NvdKeyProvider,
+    val biometricAuthManager: BiometricAuthManager
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -61,6 +63,10 @@ class SettingsViewModel @Inject constructor(
 
     fun updateScreenshotAllowed(enabled: Boolean) = viewModelScope.launch {
         settingsRepository.updateScreenshotAllowed(enabled)
+    }
+
+    fun updateBiometricLock(enabled: Boolean) = viewModelScope.launch {
+        settingsRepository.updateBiometricLock(enabled)
     }
 
     fun exportLastScan(context: Context) = viewModelScope.launch {

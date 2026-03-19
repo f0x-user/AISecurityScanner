@@ -2,9 +2,9 @@ package com.aisecurity.scanner
 
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,14 +13,18 @@ import com.aisecurity.scanner.ui.navigation.AppNavGraph
 import com.aisecurity.scanner.ui.navigation.Screen
 import com.aisecurity.scanner.ui.theme.AISecurityTheme
 import com.aisecurity.scanner.ui.theme.AppTheme
+import com.aisecurity.scanner.util.BiometricAuthManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var biometricAuthManager: BiometricAuthManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,12 +60,28 @@ class MainActivity : ComponentActivity() {
             else
                 Screen.Onboarding.route
 
+            var isAuthenticated by remember { mutableStateOf(!settings.biometricLock) }
+
+            LaunchedEffect(settings.biometricLock) {
+                if (!settings.biometricLock) {
+                    isAuthenticated = true
+                } else if (!isAuthenticated) {
+                    biometricAuthManager.authenticate(
+                        activity = this@MainActivity,
+                        onSuccess = { isAuthenticated = true },
+                        onFailure = { finish() }
+                    )
+                }
+            }
+
             AISecurityTheme(
                 appTheme = appTheme,
                 dynamicColor = settings.dynamicColor,
                 fontSize = settings.fontSize
             ) {
-                AppNavGraph(startDestination = startDestination)
+                if (isAuthenticated) {
+                    AppNavGraph(startDestination = startDestination)
+                }
             }
         }
     }

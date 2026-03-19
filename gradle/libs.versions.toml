@@ -17,6 +17,7 @@ navigationCompose = "2.8.5"
 datastore = "1.1.2"
 securityCrypto = "1.1.0-alpha06"
 sqlcipher = "4.6.1"
+biometric = "1.1.0"
 accompanist = "0.36.0"
 coil = "2.7.0"
 jsoup = "1.18.3"
@@ -64,6 +65,9 @@ coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutin
 
 # DataStore
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Biometric
+biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 
 # Security
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
