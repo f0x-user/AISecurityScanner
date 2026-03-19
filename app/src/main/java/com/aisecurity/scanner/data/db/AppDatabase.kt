@@ -25,6 +25,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appAuditDao(): AppAuditDao
 
     companion object {
+        // Migration von Version 1 auf 2 – fügt affectedAppsJson zur vulnerabilities-Tabelle hinzu.
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `vulnerabilities` ADD COLUMN `affectedAppsJson` TEXT NOT NULL DEFAULT ''"
+                )
+            }
+        }
+
         // Migration von Version 2 auf 3 – keine strukturellen Schema-Änderungen,
         // daher ist dies eine No-Op-Migration (reine Versions-Inkrementierung).
         val MIGRATION_2_3 = object : Migration(2, 3) {
