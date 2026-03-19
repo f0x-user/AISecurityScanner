@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.aisecurity.scanner.data.repository.AppSettings
 import com.aisecurity.scanner.data.repository.ScanRepository
 import com.aisecurity.scanner.data.repository.SettingsRepository
+import com.aisecurity.scanner.di.NvdKeyProvider
 import com.aisecurity.scanner.util.DebugLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,11 +26,20 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val scanRepository: ScanRepository,
-    private val debugLogger: DebugLogger
+    private val debugLogger: DebugLogger,
+    private val nvdKeyProvider: NvdKeyProvider
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
+
+    private val _nvdApiKey = MutableStateFlow(nvdKeyProvider.getApiKey())
+    val nvdApiKey: StateFlow<String> = _nvdApiKey.asStateFlow()
+
+    fun updateNvdApiKey(key: String) {
+        nvdKeyProvider.setApiKey(key)
+        _nvdApiKey.value = key
+    }
 
     /** Pfad zur zuletzt abgeschlossenen Debug-Log-Datei (zum Teilen/Speichern). */
     private val _lastDebugLogFile = MutableStateFlow<File?>(null)

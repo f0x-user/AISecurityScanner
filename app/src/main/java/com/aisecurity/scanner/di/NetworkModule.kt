@@ -45,12 +45,23 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("nvd")
-    fun provideNvdRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
-        Retrofit.Builder()
+    fun provideNvdRetrofit(okHttpClient: OkHttpClient, moshi: Moshi, nvdKeyProvider: NvdKeyProvider): Retrofit {
+        val nvdClient = okHttpClient.newBuilder()
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val key = nvdKeyProvider.getApiKey()
+                val newRequest = if (key.isNotEmpty()) {
+                    request.newBuilder().addHeader("apiKey", key).build()
+                } else request
+                chain.proceed(newRequest)
+            }
+            .build()
+        return Retrofit.Builder()
             .baseUrl("https://services.nvd.nist.gov/rest/json/")
-            .client(okHttpClient)
+            .client(nvdClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
+    }
 
     @Provides
     @Singleton

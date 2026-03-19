@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +30,7 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val lastDebugLogFile by viewModel.lastDebugLogFile.collectAsStateWithLifecycle()
+    val currentNvdApiKey by viewModel.nvdApiKey.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     Scaffold(
@@ -135,6 +137,37 @@ fun SettingsScreen(
                         )
                     }
                 }
+            }
+
+            // NVD API-Key
+            var nvdKeyInput by remember(currentNvdApiKey) { mutableStateOf(currentNvdApiKey) }
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                Text("NVD API-Key (optional)", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "Erhöht das Rate-Limit von 5 auf 50 Anfragen/30s. Kostenlos auf nvd.nist.gov",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = nvdKeyInput,
+                    onValueChange = { nvdKeyInput = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("API-Key") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true
+                )
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = { viewModel.updateNvdApiKey(nvdKeyInput) },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Speichern") }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "API-Key anfordern → nvd.nist.gov/developers/request-an-api-key",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
