@@ -37,6 +37,17 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (currentBiometricLock && !isAuthenticated.value) {
+            biometricAuthManager.authenticate(
+                activity = this,
+                onSuccess = { isAuthenticated.value = true },
+                onFailure = { finish() }
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
