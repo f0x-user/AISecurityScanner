@@ -60,6 +60,11 @@ object ScannerModule {
 
     @Provides
     @Singleton
+    fun providePasswordLeakScanner(@ApplicationContext context: Context): PasswordLeakScanner =
+        PasswordLeakScanner(context)
+
+    @Provides
+    @Singleton
     fun provideSecurityScanManager(
         systemInfoScanner: SystemInfoScanner,
         appPermissionAuditor: AppPermissionAuditor,
@@ -69,6 +74,7 @@ object ScannerModule {
         zeroDayCorrelator: ZeroDayCorrelator,
         malwareIndicatorScanner: MalwareIndicatorScanner,
         privacyHardwareScanner: PrivacyHardwareScanner,
+        passwordLeakScanner: PasswordLeakScanner,
         debugLogger: DebugLogger
     ): SecurityScanManager = SecurityScanManager(
         systemInfoScanner,
@@ -79,6 +85,7 @@ object ScannerModule {
         zeroDayCorrelator,
         malwareIndicatorScanner,
         privacyHardwareScanner,
+        passwordLeakScanner,
         debugLogger
     )
 }
