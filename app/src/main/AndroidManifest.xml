@@ -23,9 +23,6 @@
     <!-- Biometrische Authentifizierung -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
-    <!-- Vordergrundservice für Scans -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
     <application
         android:name=".AISecurityApp"
         android:allowBackup="false"
