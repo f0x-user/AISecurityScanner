@@ -167,7 +167,7 @@ private fun ScanHistoryCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(dateStr, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    text = "${scan.scanDepth.label} • ${scan.durationMs / 1000}s",
+                    text = "${scan.scanDepth} • ${scan.durationMs / 1000}s",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

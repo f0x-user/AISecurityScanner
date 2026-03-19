@@ -22,9 +22,8 @@ enum class Priority {
     IMMEDIATE, HIGH, NORMAL, LOW
 }
 
-enum class ScanDepth(val label: String, val durationMinutes: Int) {
-    QUICK("Schnell", 2),
-    STANDARD("Standard", 5),
-    DEEP("Tief", 15),
-    FORENSIC("Forensisch", 30)
+// ScanDepth wird nur noch für historische DB-Einträge beibehalten
+// Alle Scans laufen immer mit maximaler Tiefe
+object ScanDepth {
+    const val FULL = "FULL"
 }

@@ -71,7 +71,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 1/8: SystemInfoScanner")
             debugLogger.logSection("Modul 1/8: SystemInfoScanner")
             val m1Start = System.currentTimeMillis()
-            val systemFindings = systemInfoScanner.scan(ScanDepth.FORENSIC)
+            val systemFindings = systemInfoScanner.scan()
             allVulnerabilities += systemFindings
             debugLogger.logTiming("SystemInfoScanner", "Dauer", System.currentTimeMillis() - m1Start)
             debugLogger.log("SystemInfoScanner", "${systemFindings.size} Befunde")
@@ -98,7 +98,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 3/8: NetworkSecurityScanner")
             debugLogger.logSection("Modul 3/8: NetworkSecurityScanner")
             val m3Start = System.currentTimeMillis()
-            val networkFindings = networkSecurityScanner.scan(ScanDepth.FORENSIC)
+            val networkFindings = networkSecurityScanner.scan()
             allVulnerabilities += networkFindings
             debugLogger.logTiming("NetworkSecurityScanner", "Dauer", System.currentTimeMillis() - m3Start)
             debugLogger.log("NetworkSecurityScanner", "${networkFindings.size} Befunde")
@@ -111,7 +111,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 4/8: DeviceHardeningChecker")
             debugLogger.logSection("Modul 4/8: DeviceHardeningChecker")
             val m4Start = System.currentTimeMillis()
-            val hardeningFindings = deviceHardeningChecker.scan(ScanDepth.FORENSIC)
+            val hardeningFindings = deviceHardeningChecker.scan()
             allVulnerabilities += hardeningFindings
             debugLogger.logTiming("DeviceHardeningChecker", "Dauer", System.currentTimeMillis() - m4Start)
             debugLogger.log("DeviceHardeningChecker", "${hardeningFindings.size} Befunde")
@@ -124,7 +124,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 5/8: StorageSecurityScanner")
             debugLogger.logSection("Modul 5/8: StorageSecurityScanner")
             val m5Start = System.currentTimeMillis()
-            val storageFindings = storageSecurityScanner.scan(ScanDepth.FORENSIC)
+            val storageFindings = storageSecurityScanner.scan()
             allVulnerabilities += storageFindings
             debugLogger.logTiming("StorageSecurityScanner", "Dauer", System.currentTimeMillis() - m5Start)
             debugLogger.log("StorageSecurityScanner", "${storageFindings.size} Befunde")
@@ -137,7 +137,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 6/8: ZeroDayCorrelator")
             debugLogger.logSection("Modul 6/8: ZeroDayCorrelator (alle CVEs)")
             val m6Start = System.currentTimeMillis()
-            val zeroDayFindings = zeroDayCorrelator.correlate(ScanDepth.FORENSIC)
+            val zeroDayFindings = zeroDayCorrelator.correlate()
             allVulnerabilities += zeroDayFindings
             debugLogger.logTiming("ZeroDayCorrelator", "Dauer", System.currentTimeMillis() - m6Start)
             debugLogger.log("ZeroDayCorrelator", "${zeroDayFindings.size} CVEs korreliert")
@@ -150,7 +150,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 7/8: MalwareIndicatorScanner")
             debugLogger.logSection("Modul 7/8: MalwareIndicatorScanner")
             val m7Start = System.currentTimeMillis()
-            val malwareFindings = malwareIndicatorScanner.scan(ScanDepth.FORENSIC)
+            val malwareFindings = malwareIndicatorScanner.scan()
             allVulnerabilities += malwareFindings
             debugLogger.logTiming("MalwareIndicatorScanner", "Dauer", System.currentTimeMillis() - m7Start)
             debugLogger.log("MalwareIndicatorScanner", "${malwareFindings.size} Indikatoren")
@@ -163,7 +163,7 @@ class SecurityScanManager @Inject constructor(
             log("Modul 8/8: PrivacyHardwareScanner")
             debugLogger.logSection("Modul 8/8: PrivacyHardwareScanner + Forensik")
             val m8Start = System.currentTimeMillis()
-            val privacyFindings = privacyHardwareScanner.scan(ScanDepth.FORENSIC)
+            val privacyFindings = privacyHardwareScanner.scan()
             allVulnerabilities += privacyFindings
             debugLogger.logTiming("PrivacyHardwareScanner", "Dauer", System.currentTimeMillis() - m8Start)
             debugLogger.log("PrivacyHardwareScanner", "${privacyFindings.size} Befunde")
@@ -188,7 +188,7 @@ class SecurityScanManager @Inject constructor(
                 id = scanId,
                 timestamp = Instant.now(),
                 overallScore = score,
-                scanDepth = ScanDepth.FORENSIC,
+                scanDepth = ScanDepth.FULL,
                 durationMs = durationMs,
                 vulnerabilities = allVulnerabilities.sortedWith(
                     compareBy({ it.severity.order }, { -it.cvssScore })

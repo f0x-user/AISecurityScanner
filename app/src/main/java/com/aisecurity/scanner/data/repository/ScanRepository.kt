@@ -33,7 +33,7 @@ class ScanRepository @Inject constructor(
                     id = entity.id,
                     timestamp = Instant.ofEpochMilli(entity.timestamp),
                     overallScore = entity.overallScore,
-                    scanDepth = ScanDepth.valueOf(entity.scanDepth),
+                    scanDepth = entity.scanDepth,
                     durationMs = entity.durationMs,
                     vulnerabilities = emptyList(), // Lazy – Details werden separat geladen
                     storedCritical = entity.criticalCount,
@@ -55,7 +55,7 @@ class ScanRepository @Inject constructor(
             id = entity.id,
             timestamp = Instant.ofEpochMilli(entity.timestamp),
             overallScore = entity.overallScore,
-            scanDepth = ScanDepth.valueOf(entity.scanDepth),
+            scanDepth = entity.scanDepth,
             durationMs = entity.durationMs,
             vulnerabilities = vulnEntities.map { it.toDomain() },
             appAudits = auditEntities.map { it.toDomain() }
@@ -73,7 +73,7 @@ class ScanRepository @Inject constructor(
                 id = scanResult.id,
                 timestamp = scanResult.timestamp.toEpochMilli(),
                 overallScore = scanResult.overallScore,
-                scanDepth = scanResult.scanDepth.name,
+                scanDepth = scanResult.scanDepth,
                 durationMs = scanResult.durationMs,
                 criticalCount = scanResult.criticalCount,
                 highCount = scanResult.highCount,

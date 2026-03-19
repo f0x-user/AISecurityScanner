@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.aisecurity.scanner.data.repository.AppSettings
 import com.aisecurity.scanner.data.repository.ScanRepository
 import com.aisecurity.scanner.data.repository.SettingsRepository
-import com.aisecurity.scanner.domain.model.ScanDepth
 import com.aisecurity.scanner.util.DebugLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,11 +40,6 @@ class SettingsViewModel @Inject constructor(
 
     fun updateTheme(theme: String) = viewModelScope.launch { settingsRepository.updateTheme(theme) }
     fun updateDynamicColor(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateDynamicColor(enabled) }
-    fun updateScanDepth(depth: ScanDepth) = viewModelScope.launch { settingsRepository.updateScanDepth(depth) }
-    fun updateAutoScan(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateAutoScan(enabled) }
-    fun updateCriticalAlerts(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateCriticalAlerts(enabled) }
-    fun updateWeeklyReport(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateWeeklyReport(enabled) }
-    fun updateNewCveAlerts(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateNewCveAlerts(enabled) }
     fun updateAutoUpdateDb(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateAutoUpdateDb(enabled) }
     fun updateOfflineMode(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateOfflineMode(enabled) }
     fun updateDataRetentionDays(days: Int) = viewModelScope.launch { settingsRepository.updateDataRetentionDays(days) }
@@ -54,8 +48,6 @@ class SettingsViewModel @Inject constructor(
     fun updateExportFormat(format: String) = viewModelScope.launch { settingsRepository.updateExportFormat(format) }
     fun updateLanguage(language: String) = viewModelScope.launch { settingsRepository.updateLanguage(language) }
     fun updateFontSize(size: String) = viewModelScope.launch { settingsRepository.updateFontSize(size) }
-    fun updateScanOnCharging(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateScanOnCharging(enabled) }
-    fun updateAutoScanInterval(interval: String) = viewModelScope.launch { settingsRepository.updateAutoScanInterval(interval) }
 
     fun updateScreenshotAllowed(enabled: Boolean) = viewModelScope.launch {
         settingsRepository.updateScreenshotAllowed(enabled)
@@ -70,7 +62,7 @@ class SettingsViewModel @Inject constructor(
             appendLine("=========================================")
             appendLine("Datum:            ${formatter.format(scan.timestamp)}")
             appendLine("Sicherheits-Score: ${scan.overallScore}/100")
-            appendLine("Scan-Tiefe:       ${scan.scanDepth.label}")
+            appendLine("Scan-Tiefe:       ${scan.scanDepth}")
             appendLine("Dauer:            ${scan.durationMs / 1000}s")
             appendLine()
             appendLine("ZUSAMMENFASSUNG")

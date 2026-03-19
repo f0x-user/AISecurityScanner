@@ -6,7 +6,7 @@ data class ScanResult(
     val id: String,
     val timestamp: Instant,
     val overallScore: Int,           // 0–100 (100 = sicher)
-    val scanDepth: ScanDepth,
+    val scanDepth: String = ScanDepth.FULL,
     val durationMs: Long,
     val vulnerabilities: List<VulnerabilityEntry>,
     val appAudits: List<AppAudit> = emptyList(),

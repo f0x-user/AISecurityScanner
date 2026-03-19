@@ -11,31 +11,18 @@ import javax.inject.Inject
 
 class SystemInfoScanner @Inject constructor(private val context: Context) {
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.STANDARD): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
+    suspend fun scan(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val findings = mutableListOf<VulnerabilityEntry?>()
 
-        // QUICK: Nur kritische OS-Basisprüfungen
         findings += checkAndroidVersion()
         findings += checkSecurityPatchLevel()
-
-        // STANDARD+: Zusätzliche Systemsicherheitsprüfungen
-        if (depth != ScanDepth.QUICK) {
-            findings += checkSELinuxMode()
-            findings += checkEncryptionStatus()
-            findings += checkVerifiedBootState()
-        }
-
-        // DEEP+: Kernel- und Bootloader-Analyse
-        if (depth == ScanDepth.DEEP || depth == ScanDepth.FORENSIC) {
-            findings += checkKernelVersion()
-            findings += checkBootloaderLockStatus()
-        }
-
-        // FORENSIC: Erweiterte Build-Integritätsprüfungen
-        if (depth == ScanDepth.FORENSIC) {
-            findings += checkBuildIntegrity()
-            findings += checkSystemPartitionMounts()
-        }
+        findings += checkSELinuxMode()
+        findings += checkEncryptionStatus()
+        findings += checkVerifiedBootState()
+        findings += checkKernelVersion()
+        findings += checkBootloaderLockStatus()
+        findings += checkBuildIntegrity()
+        findings += checkSystemPartitionMounts()
 
         findings.filterNotNull()
     }

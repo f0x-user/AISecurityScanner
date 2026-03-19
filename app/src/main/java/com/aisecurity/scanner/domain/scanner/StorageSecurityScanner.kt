@@ -16,28 +16,15 @@ import javax.inject.Inject
 
 class StorageSecurityScanner @Inject constructor(private val context: Context) {
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.STANDARD): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
+    suspend fun scan(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val findings = mutableListOf<VulnerabilityEntry?>()
 
-        // QUICK: Nur Verschlüsselungsstatus (fundamental)
         findings += checkDeviceEncryption()
-
-        // STANDARD+: Zertifikatsspeicher prüfen
-        if (depth != ScanDepth.QUICK) {
-            findings += checkUserCertificates()
-        }
-
-        // DEEP+: Datei-Leaks und Backup-Daten
-        if (depth == ScanDepth.DEEP || depth == ScanDepth.FORENSIC) {
-            findings += checkExternalLogFiles()
-        }
-
-        // FORENSIC: Vollständige Speicheranalyse
-        if (depth == ScanDepth.FORENSIC) {
-            findings += checkBackupDataLeaks()
-            findings += checkWorldReadableFiles()
-            findings += checkSensitiveFilesInDownloads()
-        }
+        findings += checkUserCertificates()
+        findings += checkExternalLogFiles()
+        findings += checkBackupDataLeaks()
+        findings += checkWorldReadableFiles()
+        findings += checkSensitiveFilesInDownloads()
 
         findings.filterNotNull()
     }

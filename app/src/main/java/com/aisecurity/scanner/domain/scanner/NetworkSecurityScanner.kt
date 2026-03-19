@@ -15,36 +15,18 @@ import javax.inject.Inject
 
 class NetworkSecurityScanner @Inject constructor(private val context: Context) {
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.STANDARD): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
+    suspend fun scan(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val findings = mutableListOf<VulnerabilityEntry?>()
 
-        // QUICK: Nur kritische Netzwerkprüfungen (offenes WLAN + ADB-Port)
-        val portsToScan = when (depth) {
-            ScanDepth.QUICK    -> listOf(5555)                                     // Nur ADB
-            ScanDepth.STANDARD -> listOf(22, 23, 5555, 8080)                       // + SSH, Telnet, HTTP-Proxy
-            ScanDepth.DEEP     -> listOf(22, 23, 80, 443, 5555, 8080, 8443)        // + HTTP/HTTPS
-            ScanDepth.FORENSIC -> listOf(21, 22, 23, 25, 80, 443, 3306, 5555, 8080, 8443, 9090, 27017)  // Vollständig
-        }
+        val portsToScan = listOf(21, 22, 23, 25, 80, 443, 3306, 5555, 8080, 8443, 9090, 27017)
 
         findings += checkWifiSecurity()
         findings += checkOpenPorts(portsToScan)
-
-        // STANDARD+: VPN und DNS prüfen
-        if (depth != ScanDepth.QUICK) {
-            findings += checkVpnStatus()
-            findings += checkDnsOverHttps()
-        }
-
-        // DEEP+: Proxy-Konfiguration prüfen
-        if (depth == ScanDepth.DEEP || depth == ScanDepth.FORENSIC) {
-            findings += checkProxyConfiguration()
-        }
-
-        // FORENSIC: Zertifikats-Pinning und erweiterte TLS-Analyse
-        if (depth == ScanDepth.FORENSIC) {
-            findings += checkInsecureTlsSettings()
-            findings += checkCaptivePortalDetection()
-        }
+        findings += checkVpnStatus()
+        findings += checkDnsOverHttps()
+        findings += checkProxyConfiguration()
+        findings += checkInsecureTlsSettings()
+        findings += checkCaptivePortalDetection()
 
         findings.filterNotNull()
     }

@@ -105,30 +105,6 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            // === Benachrichtigungen ===
-            SettingsSectionHeader("Benachrichtigungen", Icons.Default.Notifications)
-
-            SettingsToggle(
-                title = stringResource(R.string.settings_critical_alerts),
-                subtitle = "Sofortiger Alert bei kritischen Schwachstellen",
-                checked = settings.criticalAlerts,
-                onCheckedChange = viewModel::updateCriticalAlerts
-            )
-            SettingsToggle(
-                title = stringResource(R.string.settings_weekly_report),
-                subtitle = "Wöchentlicher Sicherheitsbericht",
-                checked = settings.weeklyReport,
-                onCheckedChange = viewModel::updateWeeklyReport
-            )
-            SettingsToggle(
-                title = stringResource(R.string.settings_new_cve_alerts),
-                subtitle = "Push-Benachrichtigung bei neuen Zero-Days für dein Gerät",
-                checked = settings.newCveAlerts,
-                onCheckedChange = viewModel::updateNewCveAlerts
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
             // === Datenbank ===
             SettingsSectionHeader("Datenbank", Icons.Default.Storage)
 

@@ -14,32 +14,19 @@ import javax.inject.Inject
 
 class DeviceHardeningChecker @Inject constructor(private val context: Context) {
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.STANDARD): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
+    suspend fun scan(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val findings = mutableListOf<VulnerabilityEntry?>()
 
-        // QUICK: Nur die kritischsten Gerätesicherheitsprüfungen
         findings += checkScreenLock()
         findings += checkAdbOverNetwork()
         findings += checkUsbDebugging()
-
-        // STANDARD+: Weitere Härtungsprüfungen
-        if (depth != ScanDepth.QUICK) {
-            findings += checkDeveloperOptions()
-            findings += checkUnknownSources()
-        }
-
-        // DEEP+: Konfigurationsprüfungen
-        if (depth == ScanDepth.DEEP || depth == ScanDepth.FORENSIC) {
-            findings += checkScreenTimeout()
-            findings += checkBackupEnabled()
-        }
-
-        // FORENSIC: Vollständige Härtungsanalyse
-        if (depth == ScanDepth.FORENSIC) {
-            findings += checkBiometricSecurity()
-            findings += checkAutoFillSecurity()
-            findings += checkLockdownModeAvailability()
-        }
+        findings += checkDeveloperOptions()
+        findings += checkUnknownSources()
+        findings += checkScreenTimeout()
+        findings += checkBackupEnabled()
+        findings += checkBiometricSecurity()
+        findings += checkAutoFillSecurity()
+        findings += checkLockdownModeAvailability()
 
         findings.filterNotNull()
     }

@@ -14,7 +14,7 @@ class ZeroDayCorrelator @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
 
-    suspend fun correlate(depth: ScanDepth = ScanDepth.STANDARD): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
+    suspend fun correlate(): List<VulnerabilityEntry> = withContext(Dispatchers.IO) {
         val settings = settingsRepository.settings.first()
         if (settings.offlineMode || settings.localOnlyMode) {
             return@withContext emptyList()
@@ -26,14 +26,7 @@ class ZeroDayCorrelator @Inject constructor(
         val androidVersion = Build.VERSION.RELEASE
         val apiLevel = Build.VERSION.SDK_INT
 
-        // CVSS-Mindestgrenze je nach Scan-Tiefe:
-        // STANDARD: Nur High/Critical (≥7.0), DEEP: auch Medium (≥4.0), FORENSIC: alle (≥0.1)
-        val minCvssThreshold = when (depth) {
-            ScanDepth.STANDARD -> 7.0f
-            ScanDepth.DEEP     -> 4.0f
-            ScanDepth.FORENSIC -> 0.1f
-            ScanDepth.QUICK    -> 9.0f  // Quick läuft den ZeroDayCorrelator gar nicht – aber sicher ist sicher
-        }
+        val minCvssThreshold = 0.1f
 
         // CISA KEV: Aktiv ausgenutzte CVEs abrufen
         val activelyExploitedIds = vulnRepository.getActivelyExploitedCveIds()

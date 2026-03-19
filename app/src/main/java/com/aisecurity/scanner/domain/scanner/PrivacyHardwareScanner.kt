@@ -21,11 +21,10 @@ import javax.inject.Inject
 
 class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
 
-    suspend fun scan(depth: ScanDepth = ScanDepth.DEEP): List<VulnerabilityEntry> =
+    suspend fun scan(): List<VulnerabilityEntry> =
         withContext(Dispatchers.IO) {
             val findings = mutableListOf<VulnerabilityEntry?>()
 
-            // DEEP: Vollständige Privacy/Hardware-Analyse
             findings += checkCameraAndMicrophoneAccess()
             findings += checkVpnConnections()
             findings += checkBatteryOptimizationBypass()
@@ -33,13 +32,9 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
             findings += checkRootIndicators()
             findings += checkOpenNetworkPorts()
             findings += checkBootReceiverApps()
-
-            // FORENSIC: Instrumentation, Log-Analyse und Prozess-Forensik
-            if (depth == ScanDepth.FORENSIC) {
-                findings += checkFridaAndInstrumentation()
-                findings += checkLogcatForSecurityIssues()
-                findings += checkSuspiciousProcesses()
-            }
+            findings += checkFridaAndInstrumentation()
+            findings += checkLogcatForSecurityIssues()
+            findings += checkSuspiciousProcesses()
 
             findings.filterNotNull()
         }
