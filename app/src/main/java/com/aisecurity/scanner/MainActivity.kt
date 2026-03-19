@@ -47,9 +47,8 @@ class MainActivity : FragmentActivity() {
 
         setContent {
             // null = DataStore noch nicht geladen; non-null = echte Settings verfügbar
-            val settings: AppSettings? by settingsRepository.settings
-                .map { it as AppSettings? }
-                .collectAsStateWithLifecycle(initialValue = null)
+            val nullableSettingsFlow = remember { settingsRepository.settings.map { it as AppSettings? } }
+            val settings: AppSettings? by nullableSettingsFlow.collectAsStateWithLifecycle(initialValue = null)
 
             // Reaktiver Screenshot-Schutz basierend auf Einstellung
             SideEffect {
