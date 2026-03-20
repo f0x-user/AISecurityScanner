@@ -441,7 +441,7 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
 
     private fun checkOpenNetworkPorts(): VulnerabilityEntry? {
         return try {
-            val suspiciousPorts = setOf(4444, 5555, 27042, 27043, 1604, 31337, 8888, 9999, 2323, 23)
+            val suspiciousPorts = setOf(4444, 27042, 27043, 1604, 31337, 8888, 9999, 2323, 23)
             val openSuspiciousPorts = mutableListOf<Int>()
 
             for (procFile in listOf("/proc/net/tcp", "/proc/net/tcp6")) {
@@ -465,7 +465,6 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
                 val portDescriptions = openSuspiciousPorts.map { port ->
                     when (port) {
                         4444 -> "4444 (Metasploit/ADB)"
-                        5555 -> "5555 (ADB over Network)"
                         27042, 27043 -> "$port (Frida Instrumentation)"
                         1604 -> "1604 (Stalkerware)"
                         31337 -> "31337 (Backdoor/Elite)"
@@ -487,7 +486,6 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
                         priority = Priority.IMMEDIATE,
                         steps = listOf(
                             "Identifiziere die Prozesse hinter diesen Ports.",
-                            "Port 5555: Deaktiviere ADB über WLAN in den Entwickleroptionen.",
                             "Unbekannte Ports: Führe sofort einen Factory Reset durch.",
                             "Stelle keine Verbindung zu öffentlichen WLAN-Netzwerken her bis das Problem behoben ist."
                         ),
