@@ -15,37 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import com.aisecurity.scanner.R
-import com.aisecurity.scanner.data.repository.ScanRepository
 import com.aisecurity.scanner.domain.model.VulnerabilityEntry
 import com.aisecurity.scanner.ui.components.SeverityBadge
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class DetailViewModel @Inject constructor(
-    private val scanRepository: ScanRepository,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
-    private val scanId: String = savedStateHandle["scanId"] ?: ""
-    private val vulnId: String = savedStateHandle["vulnId"] ?: ""
-
-    private val _vulnerability = MutableStateFlow<VulnerabilityEntry?>(null)
-    val vulnerability: StateFlow<VulnerabilityEntry?> = _vulnerability.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            val scan = scanRepository.getScanWithDetails(scanId)
-            _vulnerability.value = scan?.vulnerabilities?.firstOrNull { it.id == vulnId }
-        }
-    }
-}
+import com.aisecurity.scanner.ui.viewmodels.DetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
