@@ -10,3 +10,6 @@ local.properties
 *.jks
 *.keystore
 keystore_base64.txt
+
+# APK-Release-Dateien
+*.apk
