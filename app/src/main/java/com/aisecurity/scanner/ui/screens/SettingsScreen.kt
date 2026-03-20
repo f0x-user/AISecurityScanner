@@ -430,14 +430,12 @@ private fun SettingsItem(
 ) {
     ListItem(
         headlineContent = { Text(title) },
-        supportingContent = { Text(subtitle, style = MaterialTheme.typography.bodySmall) },
+        supportingContent = {
+            Text(subtitle, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        },
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
                 Icon(Icons.Default.ChevronRight, null)
                 trailingContent()
             }
