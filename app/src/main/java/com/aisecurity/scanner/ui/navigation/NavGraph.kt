@@ -57,7 +57,8 @@ fun AppNavGraph(startDestination: String = Screen.Onboarding.route) {
             ResultsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDetail = { vulnId ->
-                    navController.navigate(Screen.Detail.createRoute(scanId, vulnId))
+                    val encoded = java.net.URLEncoder.encode(vulnId, "UTF-8")
+                    navController.navigate(Screen.Detail.createRoute(scanId, encoded))
                 }
             )
         }
