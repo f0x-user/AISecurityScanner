@@ -23,6 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun vulnerabilityDao(): VulnerabilityDao
     abstract fun cveCache(): CVECacheDao
     abstract fun appAuditDao(): AppAuditDao
+    abstract fun remediationLogDao(): RemediationLogDao
 
     companion object {
         // Migration von Version 1 auf 2 – fügt affectedAppsJson zur vulnerabilities-Tabelle hinzu.

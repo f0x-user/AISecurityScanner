@@ -70,6 +70,11 @@ object ScannerModule {
 
     @Provides
     @Singleton
+    fun provideKernelVisibilityScanner(@ApplicationContext context: Context): KernelVisibilityScanner =
+        KernelVisibilityScanner(context)
+
+    @Provides
+    @Singleton
     fun provideSecurityScanManager(
         systemInfoScanner: SystemInfoScanner,
         appPermissionAuditor: AppPermissionAuditor,
@@ -81,6 +86,7 @@ object ScannerModule {
         privacyHardwareScanner: PrivacyHardwareScanner,
         passwordLeakScanner: PasswordLeakScanner,
         playIntegrityScanner: PlayIntegrityScanner,
+        kernelVisibilityScanner: KernelVisibilityScanner,
         debugLogger: DebugLogger
     ): SecurityScanManager = SecurityScanManager(
         systemInfoScanner,
@@ -93,6 +99,7 @@ object ScannerModule {
         privacyHardwareScanner,
         passwordLeakScanner,
         playIntegrityScanner,
+        kernelVisibilityScanner,
         debugLogger
     )
 }

@@ -22,6 +22,7 @@ class SecurityScanManager @Inject constructor(
     private val privacyHardwareScanner: PrivacyHardwareScanner,
     private val passwordLeakScanner: PasswordLeakScanner,
     private val playIntegrityScanner: PlayIntegrityScanner,
+    private val kernelVisibilityScanner: KernelVisibilityScanner,
     private val debugLogger: DebugLogger
 ) {
     private val _progress = MutableStateFlow(ScanProgress())
@@ -68,8 +69,8 @@ class SecurityScanManager @Inject constructor(
         try {
             // Modul 1: Systeminfo
             updateProgress("Systeminfo wird analysiert...", 5)
-            log("Modul 1/10: SystemInfoScanner")
-            debugLogger.logSection("Modul 1/10: SystemInfoScanner")
+            log("Modul 1/11: SystemInfoScanner")
+            debugLogger.logSection("Modul 1/11: SystemInfoScanner")
             val m1Start = System.currentTimeMillis()
             val systemFindings = systemInfoScanner.scan()
             allVulnerabilities += systemFindings
@@ -81,8 +82,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 2: App-Berechtigungen
             updateProgress("App-Berechtigungen werden geprueft...", 13)
-            log("Modul 2/10: AppPermissionAuditor")
-            debugLogger.logSection("Modul 2/10: AppPermissionAuditor")
+            log("Modul 2/11: AppPermissionAuditor")
+            debugLogger.logSection("Modul 2/11: AppPermissionAuditor")
             val m2Start = System.currentTimeMillis()
             val (appFindings, audits) = appPermissionAuditor.scan()
             allVulnerabilities += appFindings
@@ -95,8 +96,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 3: Netzwerksicherheit
             updateProgress("Netzwerksicherheit wird analysiert...", 25)
-            log("Modul 3/10: NetworkSecurityScanner")
-            debugLogger.logSection("Modul 3/10: NetworkSecurityScanner")
+            log("Modul 3/11: NetworkSecurityScanner")
+            debugLogger.logSection("Modul 3/11: NetworkSecurityScanner")
             val m3Start = System.currentTimeMillis()
             val networkFindings = networkSecurityScanner.scan()
             allVulnerabilities += networkFindings
@@ -108,8 +109,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 4: Geraetehärtung
             updateProgress("Geraetesicherheit wird geprueft...", 37)
-            log("Modul 4/10: DeviceHardeningChecker")
-            debugLogger.logSection("Modul 4/10: DeviceHardeningChecker")
+            log("Modul 4/11: DeviceHardeningChecker")
+            debugLogger.logSection("Modul 4/11: DeviceHardeningChecker")
             val m4Start = System.currentTimeMillis()
             val hardeningFindings = deviceHardeningChecker.scan()
             allVulnerabilities += hardeningFindings
@@ -121,8 +122,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 5: Speichersicherheit
             updateProgress("Speicher wird analysiert...", 49)
-            log("Modul 5/10: StorageSecurityScanner")
-            debugLogger.logSection("Modul 5/10: StorageSecurityScanner")
+            log("Modul 5/11: StorageSecurityScanner")
+            debugLogger.logSection("Modul 5/11: StorageSecurityScanner")
             val m5Start = System.currentTimeMillis()
             val storageFindings = storageSecurityScanner.scan()
             allVulnerabilities += storageFindings
@@ -134,8 +135,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 6: Zero-Day-Korrelation (alle CVEs)
             updateProgress("Zero-Day-Korrelation mit Online-Datenbanken...", 61)
-            log("Modul 6/10: ZeroDayCorrelator")
-            debugLogger.logSection("Modul 6/10: ZeroDayCorrelator (alle CVEs)")
+            log("Modul 6/11: ZeroDayCorrelator")
+            debugLogger.logSection("Modul 6/11: ZeroDayCorrelator (alle CVEs)")
             val m6Start = System.currentTimeMillis()
             val zeroDayFindings = zeroDayCorrelator.correlate()
             allVulnerabilities += zeroDayFindings
@@ -147,8 +148,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 7: Malware-Indikatoren
             updateProgress("Malware-Indikatoren werden gesucht...", 75)
-            log("Modul 7/10: MalwareIndicatorScanner")
-            debugLogger.logSection("Modul 7/10: MalwareIndicatorScanner")
+            log("Modul 7/11: MalwareIndicatorScanner")
+            debugLogger.logSection("Modul 7/11: MalwareIndicatorScanner")
             val m7Start = System.currentTimeMillis()
             val malwareFindings = malwareIndicatorScanner.scan()
             allVulnerabilities += malwareFindings
@@ -160,8 +161,8 @@ class SecurityScanManager @Inject constructor(
 
             // Modul 8: Privatsphaere & Hardware-Sicherheit
             updateProgress("Kamera, Mikrofon, Root, Frida, Logcat werden geprueft...", 85)
-            log("Modul 8/10: PrivacyHardwareScanner")
-            debugLogger.logSection("Modul 8/10: PrivacyHardwareScanner + Forensik")
+            log("Modul 8/11: PrivacyHardwareScanner")
+            debugLogger.logSection("Modul 8/11: PrivacyHardwareScanner + Forensik")
             val m8Start = System.currentTimeMillis()
             val privacyFindings = privacyHardwareScanner.scan()
             allVulnerabilities += privacyFindings
@@ -172,8 +173,8 @@ class SecurityScanManager @Inject constructor(
             updateProgress("Datenleck-Prüfung...", 93)
 
             // Modul 9: Passwort-Leak-Check
-            log("Modul 9/10: PasswordLeakScanner")
-            debugLogger.logSection("Modul 9/10: PasswordLeakScanner")
+            log("Modul 9/11: PasswordLeakScanner")
+            debugLogger.logSection("Modul 9/11: PasswordLeakScanner")
             val m9Start = System.currentTimeMillis()
             val leakFindings = passwordLeakScanner.scan()
             allVulnerabilities += leakFindings
@@ -184,8 +185,8 @@ class SecurityScanManager @Inject constructor(
             updateProgress("Play Integrity wird geprüft...", 95)
 
             // Modul 10: Play Integrity
-            log("Modul 10/10: PlayIntegrityScanner")
-            debugLogger.logSection("Modul 10/10: PlayIntegrityScanner")
+            log("Modul 10/11: PlayIntegrityScanner")
+            debugLogger.logSection("Modul 10/11: PlayIntegrityScanner")
             val m10Start = System.currentTimeMillis()
             val integrityFindings = playIntegrityScanner.scan()
             allVulnerabilities += integrityFindings
@@ -193,6 +194,18 @@ class SecurityScanManager @Inject constructor(
             debugLogger.log("PlayIntegrityScanner", "${integrityFindings.size} Befunde")
             integrityFindings.forEach { debugLogger.logFinding(it.id, it.severity.label, it.cvssScore, it.title) }
             log("  ${integrityFindings.size} Befunde")
+            updateProgress("Kernel-Sichtbarkeit wird analysiert...", 97)
+
+            // Modul 11: Kernel-Sichtbarkeit (eBPF-Konfiguration & Kernel-Hardening)
+            log("Modul 11/11: KernelVisibilityScanner")
+            debugLogger.logSection("Modul 11/11: KernelVisibilityScanner (eBPF + Kernel-Hardening)")
+            val m11Start = System.currentTimeMillis()
+            val kernelFindings = kernelVisibilityScanner.scan()
+            allVulnerabilities += kernelFindings
+            debugLogger.logTiming("KernelVisibilityScanner", "Dauer", System.currentTimeMillis() - m11Start)
+            debugLogger.log("KernelVisibilityScanner", "${kernelFindings.size} Befunde")
+            kernelFindings.forEach { debugLogger.logFinding(it.id, it.severity.label, it.cvssScore, it.title) }
+            log("  ${kernelFindings.size} Befunde")
             updateProgress("Scan abgeschlossen", 100)
 
             val durationMs = System.currentTimeMillis() - startTime

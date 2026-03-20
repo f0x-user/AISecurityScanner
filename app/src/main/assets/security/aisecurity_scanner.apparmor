@@ -1,0 +1,116 @@
+# AISecurityScanner – AppArmor-Profil
+#
+# Dieses Profil beschränkt die Privilegien des AISecurityScanner-Prozesses
+# auf das betrieblich notwendige Minimum (Least-Privilege-Prinzip).
+#
+# Anwendung auf Linux/Android-Systemen mit AppArmor-Unterstützung:
+#   1. Kopiere diese Datei nach /etc/apparmor.d/com.aisecurity.scanner
+#   2. Lade das Profil: apparmor_parser -r /etc/apparmor.d/com.aisecurity.scanner
+#   3. Aktiviere Enforce-Modus: aa-enforce /etc/apparmor.d/com.aisecurity.scanner
+#   4. Prüfe Status: aa-status
+#
+# Zuletzt aktualisiert: 2026-03-20
+# Version: 1.0
+# Kompatibel mit: AppArmor 3.x, Android mit AppArmor-Patch (z.B. GrapheneOS, CalyxOS)
+
+#include <tunables/global>
+
+profile com.aisecurity.scanner flags=(attach_disconnected, mediate_deleted) {
+
+    # =========================================================================
+    # Basis-Abstraktionen
+    # =========================================================================
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+
+    # =========================================================================
+    # App-eigene Datenbereiche (vollständiger Zugriff)
+    # =========================================================================
+    /data/data/com.aisecurity.scanner/                      r,
+    /data/data/com.aisecurity.scanner/**                    rwkl,
+    /data/user/*/com.aisecurity.scanner/                    r,
+    /data/user/*/com.aisecurity.scanner/**                  rwkl,
+
+    # Temporäre Dateien
+    /data/local/tmp/aisecurity_*                            rwl,
+
+    # =========================================================================
+    # Lesezugriff: /proc – für Scan-Funktionen (read-only)
+    # =========================================================================
+    # Kernel-Parameter (Sicherheitschecks)
+    /proc/sys/kernel/randomize_va_space                     r,
+    /proc/sys/kernel/kptr_restrict                          r,
+    /proc/sys/kernel/dmesg_restrict                         r,
+    /proc/sys/kernel/perf_event_paranoid                    r,
+    /proc/sys/kernel/sysrq                                  r,
+    /proc/sys/kernel/core_pattern                           r,
+    /proc/sys/kernel/unprivileged_bpf_disabled              r,
+    /proc/sys/kernel/                                       r,
+
+    # Netzwerkinformationen
+    /proc/net/if_inet6                                      r,
+    /proc/net/tcp                                           r,
+    /proc/net/tcp6                                          r,
+    /proc/net/udp                                           r,
+    /proc/net/route                                         r,
+
+    # Prozessinformationen (nur eigene Prozesse und öffentliche Infos)
+    @{PROC}/@{pid}/status                                   r,
+    @{PROC}/@{pid}/maps                                     r,
+    @{PROC}/@{pid}/cmdline                                  r,
+    /proc/modules                                           r,
+    /proc/mounts                                            r,
+    /proc/filesystems                                       r,
+    /proc/version                                           r,
+
+    # =========================================================================
+    # Lesezugriff: /sys – für Hardwareerkennung (read-only)
+    # =========================================================================
+    /sys/fs/bpf/                                            r,
+    /sys/kernel/security/apparmor/profiles                  r,
+    /sys/kernel/security/apparmor/.access                   r,
+    /sys/module/apparmor/                                   r,
+    /sys/class/net/*/                                       r,
+    /sys/class/net/**                                       r,
+
+    # =========================================================================
+    # Netzwerkzugriff (für CVE-Datenbankabfragen)
+    # =========================================================================
+    network tcp,
+    network udp,
+
+    # =========================================================================
+    # Explicitly DENIED paths – kritische Systempfade
+    # =========================================================================
+    deny /system/**                                         rw,
+    deny /proc/sysrq-trigger                                rw,
+    deny /sys/kernel/security/apparmor/policy/**            rw,
+    deny /dev/mem                                           rw,
+    deny /dev/kmem                                          rw,
+    deny /etc/shadow                                        rw,
+    deny /etc/passwd                                        w,
+
+    # Andere App-Daten sind verboten
+    deny /data/data/                                        r,
+    deny /data/user/*/                                      r,
+
+    # =========================================================================
+    # Android-spezifische Berechtigungen
+    # =========================================================================
+    # Biometrische Authentifizierung
+    /dev/input/**                                           r,
+
+    # Datenbank (SQLCipher)
+    /data/data/com.aisecurity.scanner/databases/            rwl,
+    /data/data/com.aisecurity.scanner/databases/**          rwl,
+
+    # =========================================================================
+    # Capabilities – minimale Berechtigungen
+    # =========================================================================
+    capability net_admin,        # Netzwerkinterface-Informationen
+    capability sys_ptrace,       # Prozessinformationen lesen (read-only)
+    deny capability sys_admin,   # Kein System-Admin
+    deny capability sys_rawio,   # Kein Raw-I/O-Zugriff
+    deny capability sys_module,  # Keine Kernel-Module laden/entladen
+    deny capability mknod,       # Keine Gerätedateien erstellen
+}
