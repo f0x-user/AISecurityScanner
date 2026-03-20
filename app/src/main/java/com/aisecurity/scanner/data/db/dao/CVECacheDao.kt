@@ -20,4 +20,7 @@ interface CVECacheDao {
 
     @Query("SELECT COUNT(*) FROM cve_cache WHERE expiresAt > :now")
     suspend fun getValidCacheCount(now: Long = System.currentTimeMillis()): Int
+
+    @Query("SELECT * FROM cve_cache WHERE expiresAt > :now")
+    suspend fun getValidEntries(now: Long = System.currentTimeMillis()): List<CVECacheEntity>
 }
