@@ -291,7 +291,7 @@ private fun DatabaseUpdateStep(dbState: DbDownloadState) {
             textAlign = TextAlign.Center
         )
         Text(
-            "Lädt aktuelle Schwachstellendaten von NVD, CISA KEV und OSV.dev herunter.",
+            "Lädt aktuelle Schwachstellendaten von NVD (NIST) und CISA KEV herunter.",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
