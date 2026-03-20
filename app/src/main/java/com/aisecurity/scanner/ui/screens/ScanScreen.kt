@@ -125,7 +125,7 @@ fun ScanScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = "Vollständige Analyse – alle 8 Module",
+                                text = "Vollständige Analyse – alle 10 Module",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

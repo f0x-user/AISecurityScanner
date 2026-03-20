@@ -171,7 +171,7 @@ fun HomeScreen(
                 )
             }
             Text(
-                text = "Prüft alle 8 Module: System, Apps, Netzwerk, Gerätehärtung, Speicher, Zero-Days, Malware & Privacy",
+                text = "Prüft alle 10 Module: System, Apps, Netzwerk, Gerätehärtung, Speicher, Zero-Days, Malware, Privacy, Passwort-Leaks & Play Integrity",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -191,7 +191,7 @@ fun HomeScreen(
                     Column(Modifier.weight(1f)) {
                         Text("Vulnerability-Datenbank", style = MaterialTheme.typography.titleSmall)
                         Text(
-                            "NVD, CISA KEV, OSV.dev",
+                            "NVD (NIST), CISA KEV",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
