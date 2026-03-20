@@ -656,63 +656,10 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
     // ─── Logcat-Analyse ──────────────────────────────────────────────────────
 
     private fun checkLogcatForSecurityIssues(): VulnerabilityEntry? {
-        return try {
-            val process = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "-t", "500", "*:W"))
-            val output = BufferedReader(InputStreamReader(process.inputStream)).readLines()
-            process.destroy()
-
-            val securityKeywords = mapOf(
-                "permission denied" to "Berechtigungsfehler",
-                "ssl error" to "SSL/TLS-Fehler",
-                "certificate" to "Zertifikatsproblem",
-                "cleartext" to "Klartext-HTTP-Datenverkehr",
-                "insecure" to "Unsichere Verbindung",
-                "leaked" to "Datenleck",
-                "injection" to "Injection-Versuch",
-                "overflow" to "Buffer Overflow"
-            )
-
-            val foundIssues = mutableMapOf<String, Int>()
-            for (line in output) {
-                val lowerLine = line.lowercase()
-                for ((keyword, label) in securityKeywords) {
-                    if (keyword in lowerLine) {
-                        foundIssues[label] = (foundIssues[label] ?: 0) + 1
-                    }
-                }
-            }
-
-            if (foundIssues.isNotEmpty()) {
-                val summary = foundIssues.entries
-                    .sortedByDescending { it.value }
-                    .take(5)
-                    .joinToString(", ") { "${it.key}: ${it.value}x" }
-
-                VulnerabilityEntry(
-                    id = "PRI-010",
-                    title = "Sicherheitsrelevante Logcat-Einträge gefunden",
-                    severity = Severity.MEDIUM,
-                    cvssScore = 5.3f,
-                    cvssVector = "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N",
-                    affectedComponent = "System-Log (Logcat)",
-                    description = "Der Systemlog enthält sicherheitsrelevante Warnungen: $summary",
-                    impact = "Hinweise auf Sicherheitsprobleme, Berechtigungsfehler oder unsichere Verbindungen im Betrieb.",
-                    remediation = RemediationSteps(
-                        priority = Priority.NORMAL,
-                        steps = listOf(
-                            "Analysiere die vollständigen Logs via Android Studio → Logcat.",
-                            "Suche nach Apps die wiederholt Berechtigungsfehler verursachen.",
-                            "Cleartext-Warnungen: Betroffene Apps nutzen unsicheres HTTP statt HTTPS.",
-                            "Zertifikatsfehler: Kann auf Man-in-the-Middle-Angriffe hinweisen."
-                        ),
-                        automatable = false,
-                        officialDocUrl = "https://developer.android.com/studio/debug/am-logcat",
-                        estimatedTime = "~20 Minuten"
-                    ),
-                    source = "PrivacyHardwareScanner"
-                )
-            } else null
-        } catch (e: Exception) { null }
+        // Logcat-Analyse nicht möglich: Android beschränkt App-Log-Zugriff seit API 16.
+        // Apps können nur ihre eigenen Logs lesen – systemweite Sicherheitsanalyse
+        // via logcat ist ohne Root nicht durchführbar.
+        return null
     }
 
     // ─── Verdächtige Prozesse ────────────────────────────────────────────────
