@@ -24,7 +24,9 @@ data class AppSettings(
     val includeRemediation: Boolean = true,
     val onboardingCompleted: Boolean = false,
     val debugMode: Boolean = false,
-    val biometricLock: Boolean = false
+    val biometricLock: Boolean = false,
+    val autoRemediation: Boolean = false,
+    val rootDeepScan: Boolean = false
 )
 
 @Singleton
@@ -48,6 +50,8 @@ class SettingsRepository @Inject constructor(
         val KEY_DEBUG_MODE = booleanPreferencesKey("debug_mode")
         val KEY_SCREENSHOT_ALLOWED = booleanPreferencesKey("screenshot_allowed")
         val KEY_BIOMETRIC_LOCK = booleanPreferencesKey("biometric_lock")
+        val KEY_AUTO_REMEDIATION = booleanPreferencesKey("auto_remediation")
+        val KEY_ROOT_DEEP_SCAN = booleanPreferencesKey("root_deep_scan")
     }
 
     val settings: Flow<AppSettings> = dataStore.data
@@ -69,7 +73,9 @@ class SettingsRepository @Inject constructor(
                 includeRemediation = prefs[KEY_INCLUDE_REMEDIATION] ?: true,
                 onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
                 debugMode = prefs[KEY_DEBUG_MODE] ?: false,
-                biometricLock = prefs[KEY_BIOMETRIC_LOCK] ?: false
+                biometricLock = prefs[KEY_BIOMETRIC_LOCK] ?: false,
+                autoRemediation = prefs[KEY_AUTO_REMEDIATION] ?: false,
+                rootDeepScan = prefs[KEY_ROOT_DEEP_SCAN] ?: false
             )
         }
 
@@ -89,4 +95,6 @@ class SettingsRepository @Inject constructor(
     suspend fun updateBiometricLock(enabled: Boolean) = dataStore.edit { it[KEY_BIOMETRIC_LOCK] = enabled }
     suspend fun updateUpdateInterval(interval: String) = dataStore.edit { it[KEY_UPDATE_INTERVAL] = interval }
     suspend fun updateIncludeRemediation(enabled: Boolean) = dataStore.edit { it[KEY_INCLUDE_REMEDIATION] = enabled }
+    suspend fun updateAutoRemediation(enabled: Boolean) = dataStore.edit { it[KEY_AUTO_REMEDIATION] = enabled }
+    suspend fun updateRootDeepScan(enabled: Boolean) = dataStore.edit { it[KEY_ROOT_DEEP_SCAN] = enabled }
 }

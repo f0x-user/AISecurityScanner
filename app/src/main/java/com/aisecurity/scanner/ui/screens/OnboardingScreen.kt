@@ -23,11 +23,14 @@ import com.aisecurity.scanner.R
 import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.data.repository.VulnerabilityRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 data class DbDownloadState(
@@ -77,12 +80,12 @@ fun OnboardingScreen(
 ) {
     var currentStep by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
-    val totalSteps = 4
+    val totalSteps = 5
     val dbState by viewModel.dbState.collectAsState()
 
-    // DB-Download automatisch starten wenn Schritt 2 angezeigt wird
+    // DB-Download automatisch starten wenn Schritt 3 angezeigt wird
     LaunchedEffect(currentStep) {
-        if (currentStep == 2) viewModel.startDatabaseDownload()
+        if (currentStep == 3) viewModel.startDatabaseDownload()
     }
 
     Scaffold { padding ->
@@ -111,7 +114,8 @@ fun OnboardingScreen(
             ) { step ->
                 when (step) {
                     0 -> WelcomeStep()
-                    1 -> PermissionStep(
+                    1 -> RootCheckStep()
+                    2 -> PermissionStep(
                         icon = Icons.Default.BarChart,
                         title = stringResource(R.string.onboarding_usage_stats_title),
                         reason = stringResource(R.string.onboarding_usage_stats_reason),
@@ -123,8 +127,8 @@ fun OnboardingScreen(
                             )
                         }
                     )
-                    2 -> DatabaseUpdateStep(dbState = dbState)
-                    3 -> ReadyStep()
+                    3 -> DatabaseUpdateStep(dbState = dbState)
+                    4 -> ReadyStep()
                 }
             }
 
@@ -166,6 +170,87 @@ fun OnboardingScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RootCheckStep() {
+    var isChecking by remember { mutableStateOf(true) }
+    var isRooted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isRooted = withContext(Dispatchers.IO) { checkRootAccess() }
+        isChecking = false
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            if (isChecking) Icons.Default.Search
+            else if (isRooted) Icons.Default.Warning
+            else Icons.Default.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = if (isChecking) MaterialTheme.colorScheme.onSurfaceVariant
+            else if (isRooted) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = "Root-Erkennung",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+        if (isChecking) {
+            CircularProgressIndicator()
+            Text(
+                "Prüfe Root-Zugang…",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            if (isRooted) Icons.Default.Warning else Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (isRooted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = if (isRooted) "Root-Zugang erkannt" else "Kein Root erkannt",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                    HorizontalDivider()
+                    Text(
+                        text = if (isRooted)
+                            "Das Gerät hat Root-Zugang. Scanner-Ergebnisse können abweichen, da Root erweiterte Systemzugriffe ermöglicht. Du kannst trotzdem fortfahren."
+                        else
+                            "Das Gerät hat keinen Root-Zugang. Der Scanner arbeitet im normalen Modus.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun checkRootAccess(): Boolean {
+    val paths = listOf("/system/bin/su", "/system/xbin/su", "/sbin/su", "/su/bin/su")
+    if (paths.any { File(it).exists() }) return true
+    return runCatching {
+        ProcessBuilder("which", "su").redirectErrorStream(true).start()
+            .inputStream.bufferedReader().readText().trim().isNotEmpty()
+    }.getOrElse { false }
 }
 
 @Composable

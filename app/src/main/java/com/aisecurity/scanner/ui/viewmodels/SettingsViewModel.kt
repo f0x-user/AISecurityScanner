@@ -11,6 +11,7 @@ import com.aisecurity.scanner.data.repository.SettingsRepository
 import com.aisecurity.scanner.di.NvdKeyProvider
 import com.aisecurity.scanner.util.BiometricAuthManager
 import com.aisecurity.scanner.util.DebugLogger
+import com.aisecurity.scanner.util.JsonExporter
 import com.aisecurity.scanner.util.PdfExporter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,8 @@ class SettingsViewModel @Inject constructor(
     private val debugLogger: DebugLogger,
     private val nvdKeyProvider: NvdKeyProvider,
     val biometricAuthManager: BiometricAuthManager,
-    private val pdfExporter: PdfExporter
+    private val pdfExporter: PdfExporter,
+    private val jsonExporter: JsonExporter
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -71,6 +73,25 @@ class SettingsViewModel @Inject constructor(
 
     fun updateBiometricLock(enabled: Boolean) = viewModelScope.launch {
         settingsRepository.updateBiometricLock(enabled)
+    }
+
+    fun updateAutoRemediation(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateAutoRemediation(enabled) }
+    fun updateRootDeepScan(enabled: Boolean) = viewModelScope.launch { settingsRepository.updateRootDeepScan(enabled) }
+
+    fun exportAsJson(context: Context) = viewModelScope.launch {
+        val scan = scanRepository.getLatestScan() ?: return@launch
+        runCatching {
+            val file = jsonExporter.export(scan)
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "AI Security Scanner – Scan-Ergebnisse")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(Intent.createChooser(intent, "JSON exportieren"))
+        }
     }
 
     fun exportAsPdf(context: Context) = viewModelScope.launch {

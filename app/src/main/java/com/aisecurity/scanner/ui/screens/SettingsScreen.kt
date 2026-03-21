@@ -26,6 +26,7 @@ import com.aisecurity.scanner.ui.viewmodels.SettingsViewModel
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToAbout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -172,6 +173,24 @@ fun SettingsScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // === Scanner ===
+            SettingsSectionHeader("Scanner", Icons.Default.Shield)
+
+            SettingsToggle(
+                title = "Auto-Remediation",
+                subtitle = "Erkannte Schwachstellen automatisch beheben (wo möglich)",
+                checked = settings.autoRemediation,
+                onCheckedChange = viewModel::updateAutoRemediation
+            )
+            SettingsToggle(
+                title = "Root-Tiefenscan",
+                subtitle = "Erweiterte Prüfung auf Root-Zugang und Kernel-Modifikationen",
+                checked = settings.rootDeepScan,
+                onCheckedChange = viewModel::updateRootDeepScan
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
             // === Datenschutz ===
             SettingsSectionHeader("Datenschutz", Icons.Default.PrivacyTip)
 
@@ -234,6 +253,16 @@ fun SettingsScreen(
                 Icon(Icons.Default.FileDownload, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Als Text exportieren")
+            }
+            OutlinedButton(
+                onClick = { viewModel.exportAsJson(context) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Icon(Icons.Default.Code, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Als JSON exportieren")
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -400,6 +429,15 @@ fun SettingsScreen(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            ListItem(
+                headlineContent = { Text("Über die App") },
+                supportingContent = { Text("Version, Changelog, Lizenzen") },
+                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) },
+                trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) },
+                modifier = Modifier.clickable { onNavigateToAbout() }
+            )
 
             Spacer(Modifier.height(32.dp))
         }

@@ -1,6 +1,7 @@
 package com.aisecurity.scanner.ui.screens
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aisecurity.scanner.R
 import com.aisecurity.scanner.ui.components.ScoreGauge
+import com.aisecurity.scanner.ui.components.SeverityBadge
 import com.aisecurity.scanner.ui.viewmodels.HomeViewModel
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -28,8 +30,6 @@ import java.time.format.FormatStyle
 fun HomeScreen(
     onNavigateToScan: () -> Unit,
     onNavigateToResults: (String) -> Unit,
-    onNavigateToHistory: () -> Unit,
-    onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -37,15 +37,14 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.home_title)) },
-                actions = {
-                    IconButton(onClick = onNavigateToHistory) {
-                        Icon(Icons.Default.History, contentDescription = "Scan-Verlauf")
-                    }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Einstellungen")
-                    }
-                }
+                title = { Text(stringResource(R.string.home_title)) }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNavigateToScan,
+                icon = { Icon(Icons.Default.Shield, null) },
+                text = { Text("Scan starten") }
             )
         }
     ) { padding ->
@@ -97,6 +96,19 @@ fun HomeScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+                    if (uiState.latestScan != null) {
+                        Spacer(Modifier.height(8.dp))
+                        val trendIcon = when (uiState.scoreTrend) {
+                            "Verbesserung" -> Icons.Default.TrendingUp
+                            "Verschlechterung" -> Icons.Default.TrendingDown
+                            else -> Icons.Default.TrendingFlat
+                        }
+                        AssistChip(
+                            onClick = {},
+                            label = { Text(uiState.scoreTrend) },
+                            leadingIcon = { Icon(trendIcon, null, Modifier.size(16.dp)) }
+                        )
+                    }
                 }
             }
 
@@ -156,24 +168,34 @@ fun HomeScreen(
                 }
             }
 
-            // Scan starten
-            Button(
-                onClick = onNavigateToScan,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Icon(Icons.Default.Shield, null, Modifier.size(22.dp))
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    "Vollständigen Scan starten",
-                    style = MaterialTheme.typography.titleSmall
-                )
+            // Top-Befunde (nur wenn vorhanden)
+            if (uiState.topCriticalFindings.isNotEmpty()) {
+                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Top-Befunde",
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        uiState.topCriticalFindings.forEach { vuln ->
+                            uiState.latestScan?.let { scan ->
+                                ListItem(
+                                    headlineContent = { Text(vuln.title, maxLines = 1) },
+                                    supportingContent = { Text("CVSS ${vuln.cvssScore}") },
+                                    leadingContent = { SeverityBadge(vuln.severity) },
+                                    modifier = Modifier.clickable { onNavigateToResults(scan.id) }
+                                )
+                            }
+                        }
+                    }
+                }
             }
-            Text(
-                text = "Prüft alle 10 Module: System, Apps, Netzwerk, Gerätehärtung, Speicher, Zero-Days, Malware, Privacy, Passwort-Leaks & Play Integrity",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            // Modul-Chip
+            AssistChip(
+                onClick = {},
+                label = { Text("11 Module aktiv") },
+                leadingIcon = { Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp)) }
             )
 
             // Datenbank-Update

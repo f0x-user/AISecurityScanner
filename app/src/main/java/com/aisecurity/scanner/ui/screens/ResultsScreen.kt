@@ -50,6 +50,9 @@ fun ResultsScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.exportCurrentScanAsJson(context) }) {
+                        Icon(Icons.Default.Share, contentDescription = "Als JSON exportieren")
+                    }
                     if (selectedTab == 0) {
                         var sortMenuExpanded by remember { mutableStateOf(false) }
                         IconButton(onClick = { sortMenuExpanded = true }) {
