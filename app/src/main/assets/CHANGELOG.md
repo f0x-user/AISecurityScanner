@@ -1,3 +1,12 @@
+## Version 2.1.0
+- Neu: BottomNavigationBar (Dashboard / Verlauf / Einstellungen)
+- Neu: About-Screen mit 3 Tabs (App-Info, Changelog, Lizenzen)
+- Neu: JSON-Export für Scan-Ergebnisse (Settings & Results-Share-Button)
+- Neu: Root-Erkennungs-Schritt im Onboarding (Schritt 2, nicht blockierend)
+- Neu: Trend-Chip & Top-3-Befunde-Karte auf dem Dashboard
+- Neu: Scanner-Sektion in Einstellungen (Auto-Remediation, Root-Tiefenscan)
+- Fix: Windows-spezifischer JDK-Pfad aus gradle.properties entfernt (CI-Fix)
+
 ## Version 2.0.1
 - Fix: URL-Encoding bei Detail-Navigation
 - Fix: Duplikater ADB-Port im PrivacyHardwareScanner
