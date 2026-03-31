@@ -1,3 +1,11 @@
+## Version 2.2.0
+- Rename: "AI Security Scanner" -> "Security Scanner" (package com.mobilesecurity.scanner)
+- Neu: Modul 12 – BackdoorScanner (offene Ports, ADB-over-TCP, Remote-Access-Apps, SSH-Server, Reverse-Shell-Tools)
+- Neu: Modul 13 – BreachCheckScanner (Datenleck-Hinweise, HaveIBeenPwned-Integration)
+- Neu: Datenleck-Checker Screen (E-Mail & Passwort anonym prüfen via HIBP + Pwned Passwords API)
+- Neu: BottomNav-Tab "Datenleck" (Security-Icon) für direkten Zugriff auf den Datenleck-Checker
+- Fix: Alle Scan-Modul-Anzeigen von "X/11" auf "X/13" aktualisiert
+
 ## Version 2.1.0
 - Neu: BottomNavigationBar (Dashboard / Verlauf / Einstellungen)
 - Neu: About-Screen mit 3 Tabs (App-Info, Changelog, Lizenzen)

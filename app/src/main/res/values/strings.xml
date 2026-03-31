@@ -3,7 +3,7 @@
     <string name="app_name">SecurityScanner</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_welcome_title">Willkommen beim AI Security Scanner</string>
+    <string name="onboarding_welcome_title">Willkommen beim Security Scanner</string>
     <string name="onboarding_welcome_subtitle">Schütze dein Gerät mit professioneller Sicherheitsanalyse</string>
     <string name="onboarding_usage_stats_title">Nutzungsstatistiken</string>
     <string name="onboarding_usage_stats_reason">Warum brauchen wir das? Diese Berechtigung erlaubt uns, verdächtige App-Aktivitäten und ungewöhnlichen Datenverbrauch zu erkennen.</string>

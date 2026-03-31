@@ -14,7 +14,7 @@ Clean Architecture + MVVM + Repository Pattern
 │  Screens (Compose) + ViewModels (Hilt)          │
 ├─────────────────────────────────────────────────┤
 │                 Domain Layer                    │
-│  8 Scanner-Module + SecurityScanManager         │
+│  13 Scanner-Module + SecurityScanManager        │
 │  Domain Models (VulnerabilityEntry, ScanResult) │
 ├─────────────────────────────────────────────────┤
 │                  Data Layer                     │
@@ -53,19 +53,24 @@ Clean Architecture + MVVM + Repository Pattern
 | 6 | ZeroDayCorrelator       | NVD-CVEs, CISA KEV, CVSS v3.1, Patch-Level-Abgleich        |
 | 7 | MalwareIndicatorScanner | Bekannte Malware-Packages, Stalkerware, Accessibility-Missbrauch |
 | 8 | PrivacyHardwareScanner  | Root-Indikatoren, Frida, Boot-Receiver, Kamera/Mikrofon-Zugriff |
+| 9 | PasswordLeakScanner     | Passwort-Schwächen, Leak-Indikatoren                            |
+| 10 | PlayIntegrityScanner   | Play Integrity API, Gerätezertifizierung                        |
+| 11 | KernelVisibilityScanner | eBPF-Konfiguration, Kernel-Hardening, LSM-Status               |
+| 12 | BackdoorScanner        | Offene TCP-Ports, ADB-over-TCP, Remote-Access-Apps, SSH-Server  |
+| 13 | BreachCheckScanner     | Datenleck-Hinweise, HaveIBeenPwned-Integration (E-Mail/Passwort)|
 
 ---
 
 ## Projektstruktur
 
 ```
-app/src/main/java/com/aisecurity/scanner/
-├── AISecurityApp.kt               # Hilt Application + WorkManager
+app/src/main/java/com/mobilesecurity/scanner/
+├── SecurityApp.kt                 # Hilt Application
 ├── MainActivity.kt                # Einstiegspunkt + FLAG_SECURE (reaktiv)
 ├── di/
 │   ├── AppModule.kt               # DataStore
 │   ├── DatabaseModule.kt          # Room + SQLCipher
-│   ├── NetworkModule.kt           # Retrofit (NVD, CISA, OSV)
+│   ├── NetworkModule.kt           # Retrofit (NVD, CISA, HIBP, PwnedPasswords)
 │   └── ScannerModule.kt           # Scanner-DI
 ├── data/
 │   ├── db/                        # Room-Datenbank, DAOs, Entities
@@ -75,7 +80,7 @@ app/src/main/java/com/aisecurity/scanner/
 │   └── receiver/                  # BootReceiver
 ├── domain/
 │   ├── model/                     # VulnerabilityEntry, ScanResult, AppAudit, etc.
-│   └── scanner/                   # 8 Scanner-Module + SecurityScanManager
+│   └── scanner/                   # 13 Scanner-Module + SecurityScanManager
 └── ui/
     ├── theme/                     # AppTheme, Color, Typography (Dark/AMOLED)
     ├── components/                # SeverityBadge, ScoreGauge
@@ -109,9 +114,10 @@ app/src/main/java/com/aisecurity/scanner/
 
 | Quelle     | Typ      | Zweck                                    |
 |------------|----------|------------------------------------------|
-| NVD (NIST) | REST API | Android-CVEs mit CVSS v3.1 Scoring       |
-| CISA KEV   | REST API | Aktiv ausgenutzte Schwachstellen         |
-| OSV.dev    | REST API | Open-Source Vulnerability Database       |
+| NVD (NIST)          | REST API | Android-CVEs mit CVSS v3.1 Scoring                       |
+| CISA KEV            | REST API | Aktiv ausgenutzte Schwachstellen                         |
+| HaveIBeenPwned HIBP | REST API | E-Mail-Datenleck-Prüfung (API-Key erforderlich)          |
+| Pwned Passwords     | REST API | Anonyme Passwort-Hash-Prüfung (k-Anonymity, kostenlos)   |
 
 ---
 
