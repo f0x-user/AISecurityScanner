@@ -77,8 +77,6 @@ private fun EmailCheckTab(
     viewModel: BreachCheckViewModel
 ) {
     var email by remember { mutableStateOf("") }
-    var apiKey by remember { mutableStateOf("") }
-    var showApiKeyInfo by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -110,52 +108,18 @@ private fun EmailCheckTab(
                 leadingIcon = { Icon(Icons.Default.Email, null) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
+                    imeAction = ImeAction.Done
                 ),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-        }
-        item {
-            OutlinedTextField(
-                value = apiKey,
-                onValueChange = { apiKey = it },
-                label = { Text("HIBP API-Key (optional)") },
-                leadingIcon = { Icon(Icons.Default.Key, null) },
-                trailingIcon = {
-                    IconButton(onClick = { showApiKeyInfo = !showApiKeyInfo }) {
-                        Icon(Icons.Default.Info, "Info")
-                    }
-                },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-                    if (email.isNotBlank()) viewModel.checkEmail(email, apiKey)
+                    if (email.isNotBlank()) viewModel.checkEmail(email)
                 }),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
         }
-        if (showApiKeyInfo) {
-            item {
-                ElevatedCard {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("API-Key Info", style = MaterialTheme.typography.titleSmall)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "Fuer die E-Mail-Pruefung wird ein kostenloser API-Key von " +
-                                "haveibeenpwned.com benoetigt. Ohne Key wird nur eine " +
-                                "allgemeine Pruefung durchgefuehrt. " +
-                                "API-Key erhalten unter: haveibeenpwned.com/API/Key",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
         item {
             Button(
-                onClick = { viewModel.checkEmail(email, apiKey) },
+                onClick = { viewModel.checkEmail(email) },
                 enabled = email.isNotBlank() && !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {

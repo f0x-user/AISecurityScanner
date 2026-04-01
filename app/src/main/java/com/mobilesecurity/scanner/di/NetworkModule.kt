@@ -14,6 +14,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
@@ -98,7 +99,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("pwned")
-    fun providePwnedPasswordsRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
+    fun providePwnedPasswordsRetrofit(okHttpClient: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl("https://api.pwnedpasswords.com/")
             .client(
@@ -111,7 +112,7 @@ object NetworkModule {
                     }
                     .build()
             )
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(ScalarsConverterFactory.create())
             .build()
 
     @Provides

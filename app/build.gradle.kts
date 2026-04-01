@@ -1,9 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
 }
 
 android {
@@ -18,6 +25,8 @@ android {
         versionName = "2.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "HIBP_API_KEY", "\"${localProperties.getProperty("hibp.api.key", "")}\"")
 
         // Room schema export
         ksp {
@@ -111,6 +120,7 @@ dependencies {
     // Network
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi)
+    implementation(libs.retrofit.scalars)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.moshi.kotlin)

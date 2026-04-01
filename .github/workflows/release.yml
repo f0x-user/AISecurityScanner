@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Java 17 einrichten
         uses: actions/setup-java@v4
@@ -50,10 +52,86 @@ jobs:
           mv app/build/outputs/apk/release/app-release.apk \
              app/build/outputs/apk/release/SecurityScanner-${{ github.ref_name }}.apk
 
+      - name: Version aus Tag extrahieren
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Release Notes erstellen
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ github.ref_name }}"
+
+          # Commits seit dem letzten Tag sammeln
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges | head -30)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges | head -30)
+          fi
+
+          cat > release_notes.md << EOF
+          ## SecurityScanner $VERSION
+
+          ### Sicherheitsscanner für Android
+
+          Ein umfassender Sicherheits-Scanner, der dein Android-Gerät auf Schwachstellen, Datenlecks und Sicherheitsrisiken prüft.
+
+          ---
+
+          ### Funktionsumfang
+
+          **Scan-Module (10 aktiv)**
+          - 🔐 App-Berechtigungs-Audit – erkennt überprivilegierte Apps
+          - 🛡️ Gerätehärtungs-Check – bewertet Sicherheitseinstellungen
+          - 🔍 Kernel-Sichtbarkeits-Scanner – prüft exponierte Kernel-Infos
+          - 🦠 Malware-Indikator-Scanner – erkennt verdächtige Muster
+          - 🌐 Netzwerksicherheits-Scanner – analysiert Netzwerkkonfiguration
+          - 🎮 Play Integrity – prüft Gerätezertifizierung via Google API
+          - 🔒 Privacy-Hardware-Check – prüft Kamera-/Mikrofon-Indikatoren
+          - 💾 Speichersicherheits-Scanner – analysiert verschlüsselte Speicher
+          - ℹ️ System-Info-Scanner – sammelt sicherheitsrelevante Gerätedaten
+          - 🚪 Backdoor-Scanner – erkennt verdächtige Systemdienste
+
+          **Datenleck-Checker**
+          - E-Mail-Adressen gegen HaveIBeenPwned.com prüfen
+          - Passwörter anonym per k-Anonymity-Verfahren prüfen (SHA-1 Hash-Präfix, Klartext verlässt das Gerät nie)
+
+          **Weitere Features**
+          - Root-Erkennung (SuperSU, Magisk, su-Binärdatei)
+          - Zero-Day-Korrelation mit NVD/CISA-Datenbanken
+          - Scan-Verlauf mit Room-Datenbank (SQLCipher-verschlüsselt)
+          - JSON-Export der Scan-Ergebnisse
+          - Biometrische Authentifizierung
+          - Wischgesten zwischen allen Tabs (Dashboard ↔ Verlauf ↔ Datenleck ↔ Einstellungen)
+          - Material You Design (Material Design 3)
+
+          ---
+
+          ### Änderungen in $VERSION
+
+          $COMMITS
+
+          ---
+
+          ### Installation
+
+          1. APK herunterladen: \`SecurityScanner-${TAG}.apk\`
+          2. In den Android-Einstellungen "Installation aus unbekannten Quellen" aktivieren
+          3. APK installieren
+
+          **Mindestanforderung:** Android 8.0 (API 26)
+
+          ---
+
+          > ⚠️ **Hinweis:** Diese App ist für Sicherheitsforschung und persönliche Nutzung gedacht.
+          EOF
+
       - name: GitHub Release erstellen
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/release/SecurityScanner-${{ github.ref_name }}.apk
+          body_path: release_notes.md
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
