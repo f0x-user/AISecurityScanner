@@ -88,7 +88,7 @@ class MainActivity : FragmentActivity() {
                 val realSettings = settings!!
 
                 val startDestination = if (realSettings.onboardingCompleted)
-                    Screen.Home.route
+                    Screen.Main.route
                 else
                     Screen.Onboarding.route
 
