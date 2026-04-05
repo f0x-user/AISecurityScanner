@@ -9,6 +9,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
+import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
 import com.mobilesecurity.scanner.domain.model.*
@@ -603,7 +604,7 @@ class PrivacyHardwareScanner @Inject constructor(private val context: Context) {
         val fridaLibPaths = listOf(
             "/data/local/tmp/frida-server",
             "/data/local/tmp/frida-gadget.so",
-            "/sdcard/frida-server"
+            "${Environment.getExternalStorageDirectory().path}/frida-server"
         )
         if (fridaLibPaths.any { File(it).exists() }) {
             indicators += "Frida-Binärdateien gefunden"

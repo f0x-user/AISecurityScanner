@@ -1,8 +1,10 @@
 package com.mobilesecurity.scanner.domain.remediation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Environment
 import android.provider.Settings
 import com.mobilesecurity.scanner.data.db.dao.RemediationLogDao
 import com.mobilesecurity.scanner.data.db.entities.RemediationLogEntity
@@ -292,12 +294,13 @@ class RemediationEngine @Inject constructor(
      * Sicherheitsprüfung: Verhindert chmod auf gefährliche Systempfade.
      * Nur explizit erlaubte Pfad-Präfixe werden akzeptiert.
      */
+    @SuppressLint("SdCardPath") // /data/user/ hat keine öffentliche Context-API (Multi-User-Pfad)
     private fun isPathSafeToChmod(path: String): Boolean {
         val safePrefixes = listOf(
-            "/sdcard/",
+            "${Environment.getExternalStorageDirectory().path}/",
             "/storage/",
             "/data/user/",
-            "/data/data/${context.packageName}/"
+            "${context.dataDir.canonicalPath}/"
         )
         val dangerousPrefixes = listOf(
             "/system/", "/proc/", "/sys/", "/dev/",

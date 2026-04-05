@@ -1,5 +1,6 @@
 package com.mobilesecurity.scanner.domain.scanner
 
+import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.os.Build
@@ -389,8 +390,8 @@ class SystemInfoScanner @Inject constructor(private val context: Context) {
         }
     }
 
+    @SuppressLint("PrivateApi")
     private fun getSystemProperty(key: String): String? = try {
-        @Suppress("UNCHECKED_CAST")
         val systemProperties = Class.forName("android.os.SystemProperties")
         val get = systemProperties.getMethod("get", String::class.java)
         val value = get.invoke(null, key) as String
