@@ -1,6 +1,7 @@
 package com.mobilesecurity.scanner.domain.snapshot
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -91,7 +92,7 @@ class SnapshotManager @Inject constructor(
             }
             toRemove.forEach { id -> deleteSnapshot(id) }
             ids.removeAll(toRemove.toSet())
-            encryptedPrefs.edit().putString(SNAPSHOTS_INDEX_KEY, ids.joinToString(",")).apply()
+            encryptedPrefs.edit { putString(SNAPSHOTS_INDEX_KEY, ids.joinToString(",")) }
         }
 
     // -------------------------------------------------------------------------
@@ -112,18 +113,18 @@ class SnapshotManager @Inject constructor(
                 ""
             }
 
-            encryptedPrefs.edit()
-                .putString("${PREFS_KEY_PREFIX}${snapshotId}_path", targetPath)
-                .putString("${PREFS_KEY_PREFIX}${snapshotId}_reason", reason)
-                .putString("${PREFS_KEY_PREFIX}${snapshotId}_content", currentContent)
-                .putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.VIRTUAL.name)
-                .putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
-                .apply()
+            encryptedPrefs.edit {
+                putString("${PREFS_KEY_PREFIX}${snapshotId}_path", targetPath)
+                putString("${PREFS_KEY_PREFIX}${snapshotId}_reason", reason)
+                putString("${PREFS_KEY_PREFIX}${snapshotId}_content", currentContent)
+                putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.VIRTUAL.name)
+                putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
+            }
 
             // Index aktualisieren
             val current = encryptedPrefs.getString(SNAPSHOTS_INDEX_KEY, "") ?: ""
             val updated = if (current.isBlank()) snapshotId else "$current,$snapshotId"
-            encryptedPrefs.edit().putString(SNAPSHOTS_INDEX_KEY, updated).apply()
+            encryptedPrefs.edit { putString(SNAPSHOTS_INDEX_KEY, updated) }
 
             SnapshotResult(
                 snapshotId = snapshotId,
@@ -182,11 +183,11 @@ class SnapshotManager @Inject constructor(
             val result = executeShellCommand("btrfs subvolume snapshot $btrfsMountPoint $snapshotPath")
 
             if (result.isSuccess) {
-                encryptedPrefs.edit()
-                    .putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.BTRFS.name)
-                    .putString("${PREFS_KEY_PREFIX}${snapshotId}_path", snapshotPath)
-                    .putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
-                    .apply()
+                encryptedPrefs.edit {
+                    putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.BTRFS.name)
+                    putString("${PREFS_KEY_PREFIX}${snapshotId}_path", snapshotPath)
+                    putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
+                }
 
                 SnapshotResult(
                     snapshotId = snapshotId,
@@ -233,11 +234,11 @@ class SnapshotManager @Inject constructor(
             )
 
             if (result.isSuccess) {
-                encryptedPrefs.edit()
-                    .putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.LVM.name)
-                    .putString("${PREFS_KEY_PREFIX}${snapshotId}_path", "/dev/mapper/$lvName")
-                    .putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
-                    .apply()
+                encryptedPrefs.edit {
+                    putString("${PREFS_KEY_PREFIX}${snapshotId}_type", SnapshotType.LVM.name)
+                    putString("${PREFS_KEY_PREFIX}${snapshotId}_path", "/dev/mapper/$lvName")
+                    putLong("${PREFS_KEY_PREFIX}${snapshotId}_ts", timestamp.toEpochMilli())
+                }
 
                 SnapshotResult(
                     snapshotId = snapshotId,
@@ -275,13 +276,13 @@ class SnapshotManager @Inject constructor(
                 }
             }
         }
-        encryptedPrefs.edit()
-            .remove("${PREFS_KEY_PREFIX}${snapshotId}_path")
-            .remove("${PREFS_KEY_PREFIX}${snapshotId}_reason")
-            .remove("${PREFS_KEY_PREFIX}${snapshotId}_content")
-            .remove("${PREFS_KEY_PREFIX}${snapshotId}_type")
-            .remove("${PREFS_KEY_PREFIX}${snapshotId}_ts")
-            .apply()
+        encryptedPrefs.edit {
+            remove("${PREFS_KEY_PREFIX}${snapshotId}_path")
+            remove("${PREFS_KEY_PREFIX}${snapshotId}_reason")
+            remove("${PREFS_KEY_PREFIX}${snapshotId}_content")
+            remove("${PREFS_KEY_PREFIX}${snapshotId}_type")
+            remove("${PREFS_KEY_PREFIX}${snapshotId}_ts")
+        }
     }
 
     // -------------------------------------------------------------------------

@@ -182,6 +182,27 @@ private fun EmailResultSection(result: BreachCheckResult?) {
                 result.breaches.forEach { breach -> BreachCard(breach) }
             }
         }
+        is BreachCheckResult.BreachIndicator -> {
+            ElevatedCard {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(32.dp))
+                        Column {
+                            Text("Datenleck festgestellt!", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                            Text("Quelle: ${result.source}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    if (result.credentialsLeaked) Text("• Zugangsdaten kompromittiert", style = MaterialTheme.typography.bodySmall)
+                    if (result.dataBreach) Text("• E-Mail in Datenleck gefunden", style = MaterialTheme.typography.bodySmall)
+                    ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("Detaillierte Breach-Informationen mit HIBP API-Key:", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text("Einstellungen → HIBP API-Key eintragen (kostenlos bei haveibeenpwned.com)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        }
+                    }
+                }
+            }
+        }
         is BreachCheckResult.ApiKeyRequired -> {
             ElevatedCard {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

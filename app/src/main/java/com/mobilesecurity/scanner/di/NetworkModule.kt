@@ -1,6 +1,7 @@
 package com.mobilesecurity.scanner.di
 
 import com.mobilesecurity.scanner.data.network.CisaApiService
+import com.mobilesecurity.scanner.data.network.EmailRepApiService
 import com.mobilesecurity.scanner.data.network.HibpApiService
 import com.mobilesecurity.scanner.data.network.NvdApiService
 import com.mobilesecurity.scanner.data.network.PwnedPasswordsApiService
@@ -124,4 +125,19 @@ object NetworkModule {
     @Singleton
     fun providePwnedPasswordsApiService(@Named("pwned") retrofit: Retrofit): PwnedPasswordsApiService =
         retrofit.create(PwnedPasswordsApiService::class.java)
+
+    @Provides
+    @Singleton
+    @Named("emailrep")
+    fun provideEmailRepRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://emailrep.io/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideEmailRepApiService(@Named("emailrep") retrofit: Retrofit): EmailRepApiService =
+        retrofit.create(EmailRepApiService::class.java)
 }

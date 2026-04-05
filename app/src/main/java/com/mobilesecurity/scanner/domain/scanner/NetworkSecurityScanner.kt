@@ -57,12 +57,12 @@ class NetworkSecurityScanner @Inject constructor(private val context: Context) {
         // API 26–30: ScanResults (können leer sein → null → kein Befund)
         val capabilities: String? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val wifiInfo = caps.transportInfo as? android.net.wifi.WifiInfo
-            // SECURITY_TYPE_OPEN=0, WEP=1, PSK=2(WPA2), EAP=3, SAE=4(WPA3), ...
             when (wifiInfo?.currentSecurityType) {
-                0 -> ""            // offen
-                1 -> "[WEP]"       // WEP
-                2, 3 -> "[WPA2]"   // PSK / EAP (WPA2)
-                else -> "[WPA3]"   // SAE und neuere = sicher
+                android.net.wifi.WifiInfo.SECURITY_TYPE_OPEN -> ""
+                android.net.wifi.WifiInfo.SECURITY_TYPE_WEP -> "[WEP]"
+                android.net.wifi.WifiInfo.SECURITY_TYPE_PSK,
+                android.net.wifi.WifiInfo.SECURITY_TYPE_EAP -> "[WPA2]"
+                else -> "[WPA3]"
             }
         } else {
             val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager

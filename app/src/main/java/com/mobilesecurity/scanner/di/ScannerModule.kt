@@ -1,6 +1,7 @@
 package com.mobilesecurity.scanner.di
 
 import android.content.Context
+import com.mobilesecurity.scanner.data.network.EmailRepApiService
 import com.mobilesecurity.scanner.data.network.HibpApiService
 import com.mobilesecurity.scanner.data.network.PwnedPasswordsApiService
 import com.mobilesecurity.scanner.data.repository.SettingsRepository
@@ -85,8 +86,9 @@ object ScannerModule {
     fun provideBreachCheckScanner(
         @ApplicationContext context: Context,
         hibpApiService: HibpApiService,
+        emailRepApiService: EmailRepApiService,
         pwnedPasswordsApiService: PwnedPasswordsApiService
-    ): BreachCheckScanner = BreachCheckScanner(context, hibpApiService, pwnedPasswordsApiService)
+    ): BreachCheckScanner = BreachCheckScanner(context, hibpApiService, emailRepApiService, pwnedPasswordsApiService)
 
     @Provides
     @Singleton

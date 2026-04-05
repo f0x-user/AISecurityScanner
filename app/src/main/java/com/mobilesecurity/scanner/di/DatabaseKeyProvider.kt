@@ -2,6 +2,7 @@ package com.mobilesecurity.scanner.di
 
 import android.content.SharedPreferences
 import android.util.Base64
+import androidx.core.content.edit
 import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +26,7 @@ class DatabaseKeyProvider @Inject constructor(
         val bytes = ByteArray(32)
         SecureRandom().nextBytes(bytes)
         val encoded = Base64.encodeToString(bytes, Base64.DEFAULT)
-        encryptedPrefs.edit().putString(KEY_DB_PASSPHRASE, encoded).apply()
+        encryptedPrefs.edit { putString(KEY_DB_PASSPHRASE, encoded) }
         return bytes
     }
 

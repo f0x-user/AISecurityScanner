@@ -3,6 +3,7 @@ package com.mobilesecurity.scanner.domain.scanner
 import android.accounts.AccountManager
 import android.content.Context
 import android.os.Build
+import com.mobilesecurity.scanner.data.network.EmailRepApiService
 import com.mobilesecurity.scanner.data.network.HibpApiService
 import com.mobilesecurity.scanner.data.network.PwnedPasswordsApiService
 import com.mobilesecurity.scanner.domain.model.*
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class BreachCheckScanner @Inject constructor(
     private val context: Context,
     private val hibpApiService: HibpApiService,
+    private val emailRepApiService: EmailRepApiService,
     private val pwnedPasswordsApiService: PwnedPasswordsApiService
 ) {
 
@@ -104,30 +106,66 @@ class BreachCheckScanner @Inject constructor(
 
     suspend fun checkEmailForBreaches(email: String, apiKey: String): BreachCheckResult {
         return withContext(Dispatchers.IO) {
-            try {
-                val response = hibpApiService.getBreachesForAccount(email, apiKey)
-                when {
-                    response.code() == 200 -> {
-                        val breaches = response.body() ?: emptyList()
-                        BreachCheckResult.Found(email, breaches.map { breach ->
-                            BreachInfo(
-                                name = breach.title,
-                                domain = breach.domain,
-                                breachDate = breach.breachDate,
-                                dataClasses = breach.dataClasses,
-                                pwnCount = breach.pwnCount,
-                                isVerified = breach.isVerified
-                            )
-                        })
-                    }
-                    response.code() == 404 -> BreachCheckResult.NotFound(email)
-                    response.code() == 401 -> BreachCheckResult.ApiKeyRequired
-                    response.code() == 429 -> BreachCheckResult.RateLimited
-                    else -> BreachCheckResult.Error("HTTP ${response.code()}")
-                }
-            } catch (e: Exception) {
-                BreachCheckResult.Error(e.message ?: "Unbekannter Fehler")
+            if (apiKey.isNotBlank()) {
+                checkEmailViaHibp(email, apiKey)
+            } else {
+                checkEmailViaEmailRep(email)
             }
+        }
+    }
+
+    private suspend fun checkEmailViaHibp(email: String, apiKey: String): BreachCheckResult {
+        return try {
+            val response = hibpApiService.getBreachesForAccount(email, apiKey)
+            when (response.code()) {
+                200 -> {
+                    val breaches = response.body() ?: emptyList()
+                    BreachCheckResult.Found(email, breaches.map { breach ->
+                        BreachInfo(
+                            name = breach.title,
+                            domain = breach.domain,
+                            breachDate = breach.breachDate,
+                            dataClasses = breach.dataClasses,
+                            pwnCount = breach.pwnCount,
+                            isVerified = breach.isVerified
+                        )
+                    }, source = "HaveIBeenPwned")
+                }
+                404 -> BreachCheckResult.NotFound(email, source = "HaveIBeenPwned")
+                401 -> BreachCheckResult.ApiKeyRequired
+                429 -> BreachCheckResult.RateLimited
+                else -> BreachCheckResult.Error("HTTP ${response.code()}")
+            }
+        } catch (e: Exception) {
+            BreachCheckResult.Error(e.message ?: "Unbekannter Fehler")
+        }
+    }
+
+    private suspend fun checkEmailViaEmailRep(email: String): BreachCheckResult {
+        return try {
+            val response = emailRepApiService.getEmailReputation(email)
+            when {
+                response.isSuccessful -> {
+                    val body = response.body()
+                    when {
+                        body == null -> BreachCheckResult.Error("Leere Antwort von emailrep.io")
+                        body.details.dataBreach || body.details.credentialsLeaked -> {
+                            BreachCheckResult.BreachIndicator(
+                                email = email,
+                                credentialsLeaked = body.details.credentialsLeaked,
+                                dataBreach = body.details.dataBreach,
+                                source = "emailrep.io"
+                            )
+                        }
+                        else -> BreachCheckResult.NotFound(email, source = "emailrep.io")
+                    }
+                }
+                response.code() == 400 -> BreachCheckResult.Error("Ungültige E-Mail-Adresse")
+                response.code() == 429 -> BreachCheckResult.RateLimited
+                else -> BreachCheckResult.Error("HTTP ${response.code()}")
+            }
+        } catch (e: Exception) {
+            BreachCheckResult.Error(e.message ?: "emailrep.io nicht erreichbar")
         }
     }
 
@@ -177,8 +215,15 @@ data class BreachInfo(
 )
 
 sealed class BreachCheckResult {
-    data class Found(val email: String, val breaches: List<BreachInfo>) : BreachCheckResult()
-    data class NotFound(val email: String) : BreachCheckResult()
+    data class Found(val email: String, val breaches: List<BreachInfo>, val source: String = "HaveIBeenPwned") : BreachCheckResult()
+    data class NotFound(val email: String, val source: String = "HaveIBeenPwned") : BreachCheckResult()
+    /** Vereinfachtes Ergebnis von emailrep.io (kein API-Key nötig, keine Breach-Details) */
+    data class BreachIndicator(
+        val email: String,
+        val credentialsLeaked: Boolean,
+        val dataBreach: Boolean,
+        val source: String = "emailrep.io"
+    ) : BreachCheckResult()
     object ApiKeyRequired : BreachCheckResult()
     object RateLimited : BreachCheckResult()
     data class Error(val message: String) : BreachCheckResult()

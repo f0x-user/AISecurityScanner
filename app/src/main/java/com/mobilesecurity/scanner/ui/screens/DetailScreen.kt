@@ -3,6 +3,7 @@ package com.mobilesecurity.scanner.ui.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.core.net.toUri
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -222,7 +223,7 @@ private fun RemediationTab(vuln: VulnerabilityEntry, context: android.content.Co
                                             context.startActivity(
                                                 Intent(
                                                     android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                    Uri.parse("package:$packageName")
+                                                    "package:$packageName".toUri()
                                                 ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                                             )
                                         }
@@ -270,7 +271,7 @@ private fun RemediationTab(vuln: VulnerabilityEntry, context: android.content.Co
                 onClick = {
                     runCatching {
                         context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(vuln.remediation.officialDocUrl))
+                            Intent(Intent.ACTION_VIEW, vuln.remediation.officialDocUrl.toUri())
                                 .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                         )
                     }
@@ -319,7 +320,7 @@ private fun ReferencesTab(vuln: VulnerabilityEntry, context: android.content.Con
                             IconButton(onClick = {
                                 runCatching {
                                     context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                                        Intent(Intent.ACTION_VIEW, link.toUri())
                                             .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                                     )
                                 }

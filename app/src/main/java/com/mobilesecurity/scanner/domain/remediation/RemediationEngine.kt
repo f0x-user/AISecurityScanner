@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import androidx.core.net.toUri
 import android.provider.Settings
 import com.mobilesecurity.scanner.data.db.dao.RemediationLogDao
 import com.mobilesecurity.scanner.data.db.entities.RemediationLogEntity
@@ -214,7 +215,7 @@ class RemediationEngine @Inject constructor(
                 }
                 deepLink.startsWith("package:") -> {
                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.parse(deepLink)
+                        data = deepLink.toUri()
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                 }

@@ -3,6 +3,7 @@ package com.mobilesecurity.scanner.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -504,7 +505,7 @@ fun VulnerabilityCard(
                                     runCatching {
                                         context.startActivity(
                                             Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                Uri.parse("package:$pkg"))
+                                                "package:$pkg".toUri())
                                                 .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                                         )
                                     }
