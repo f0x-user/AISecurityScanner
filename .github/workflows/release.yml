@@ -29,6 +29,9 @@ jobs:
       - name: Gradle Wrapper ausführbar machen
         run: chmod +x gradlew
 
+      - name: Windows-spezifische Gradle-Properties entfernen
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
+
       - name: Keystore aus Secret dekodieren
         run: |
           if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then

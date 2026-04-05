@@ -25,6 +25,9 @@ jobs:
       - name: Gradle Wrapper ausführbar machen
         run: chmod +x gradlew
 
+      - name: Windows-spezifische Gradle-Properties entfernen
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
+
       - name: Lint ausführen
         run: ./gradlew lint --no-daemon
 
@@ -53,6 +56,9 @@ jobs:
 
       - name: Gradle Wrapper ausführbar machen
         run: chmod +x gradlew
+
+      - name: Windows-spezifische Gradle-Properties entfernen
+        run: sed -i '/org.gradle.java.home/d' gradle.properties
 
       - name: Debug-APK bauen
         run: ./gradlew assembleDebug --no-daemon
