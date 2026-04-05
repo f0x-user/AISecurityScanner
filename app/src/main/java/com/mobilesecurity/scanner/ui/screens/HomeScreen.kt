@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mobilesecurity.scanner.R
 import com.mobilesecurity.scanner.ui.components.ScoreGauge
 import com.mobilesecurity.scanner.ui.components.SeverityBadge
+import com.mobilesecurity.scanner.ui.components.UpdateBanner
 import com.mobilesecurity.scanner.ui.viewmodels.HomeViewModel
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -64,10 +65,16 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
+            // Update-Banner (wird nur angezeigt wenn Update verfügbar)
+            UpdateBanner()
+
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             // Security Score Card
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(
@@ -255,7 +262,8 @@ fun HomeScreen(
                 }
             }
         }
-    }
+        } // innere Column (16.dp padding)
+    } // äußere Column
 }
 
 @Composable

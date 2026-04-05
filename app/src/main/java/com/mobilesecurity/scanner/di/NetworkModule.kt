@@ -2,6 +2,7 @@ package com.mobilesecurity.scanner.di
 
 import com.mobilesecurity.scanner.data.network.CisaApiService
 import com.mobilesecurity.scanner.data.network.EmailRepApiService
+import com.mobilesecurity.scanner.data.network.GithubApiService
 import com.mobilesecurity.scanner.data.network.HibpApiService
 import com.mobilesecurity.scanner.data.network.NvdApiService
 import com.mobilesecurity.scanner.data.network.PwnedPasswordsApiService
@@ -140,4 +141,28 @@ object NetworkModule {
     @Singleton
     fun provideEmailRepApiService(@Named("emailrep") retrofit: Retrofit): EmailRepApiService =
         retrofit.create(EmailRepApiService::class.java)
+
+    @Provides
+    @Singleton
+    @Named("github")
+    fun provideGithubRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://api.github.com/")
+            .client(
+                okHttpClient.newBuilder()
+                    .addInterceptor { chain ->
+                        val req = chain.request().newBuilder()
+                            .addHeader("Accept", "application/vnd.github.v3+json")
+                            .build()
+                        chain.proceed(req)
+                    }
+                    .build()
+            )
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideGithubApiService(@Named("github") retrofit: Retrofit): GithubApiService =
+        retrofit.create(GithubApiService::class.java)
 }
