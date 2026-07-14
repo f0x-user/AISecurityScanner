@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,6 +32,7 @@ import java.time.format.FormatStyle
 fun HomeScreen(
     onNavigateToScan: () -> Unit,
     onNavigateToResults: (String) -> Unit,
+    onNavigateToIntegrity: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -198,10 +200,38 @@ fun HomeScreen(
                 }
             }
 
+            // Integritäts-Baseline (IST/Soll)
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToIntegrity() }
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Fingerprint,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Integritäts-Baseline (IST/Soll)", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            "Soll-Zustand festlegen und Abweichungen erkennen",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                }
+            }
+
             // Modul-Chip
             AssistChip(
                 onClick = {},
-                label = { Text("11 Module aktiv") },
+                label = { Text("15 Module aktiv") },
                 leadingIcon = { Icon(Icons.Default.CheckCircle, null, Modifier.size(16.dp)) }
             )
 

@@ -15,4 +15,5 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object About : Screen("about")
     object BreachCheck : Screen("breach_check")
+    object Integrity : Screen("integrity")
 }

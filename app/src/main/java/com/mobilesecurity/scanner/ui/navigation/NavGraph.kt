@@ -102,7 +102,8 @@ fun AppNavGraph(startDestination: String = Screen.Onboarding.route) {
                             onNavigateToScan = { navController.navigate(Screen.Scan.route) },
                             onNavigateToResults = { scanId ->
                                 navController.navigate(Screen.Results.createRoute(scanId))
-                            }
+                            },
+                            onNavigateToIntegrity = { navController.navigate(Screen.Integrity.route) }
                         )
                         1 -> HistoryScreen(
                             onNavigateBack = { navController.popBackStack() },
@@ -158,6 +159,10 @@ fun AppNavGraph(startDestination: String = Screen.Onboarding.route) {
 
             composable(Screen.About.route) {
                 AboutScreen(onNavigateBack = { navController.popBackStack() })
+            }
+
+            composable(Screen.Integrity.route) {
+                IntegrityScreen(onNavigateBack = { navController.popBackStack() })
             }
         }
     }

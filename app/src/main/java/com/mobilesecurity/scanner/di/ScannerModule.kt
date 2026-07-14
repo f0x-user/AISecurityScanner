@@ -112,6 +112,7 @@ object ScannerModule {
         backdoorScanner: BackdoorScanner,
         breachCheckScanner: BreachCheckScanner,
         surveillanceScanner: SurveillanceScanner,
+        integrityDriftScanner: IntegrityDriftScanner,
         debugLogger: DebugLogger
     ): SecurityScanManager = SecurityScanManager(
         systemInfoScanner,
@@ -128,6 +129,7 @@ object ScannerModule {
         backdoorScanner,
         breachCheckScanner,
         surveillanceScanner,
+        integrityDriftScanner,
         debugLogger
     )
 }
