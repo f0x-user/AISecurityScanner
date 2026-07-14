@@ -92,6 +92,11 @@ object ScannerModule {
 
     @Provides
     @Singleton
+    fun provideSurveillanceScanner(@ApplicationContext context: Context): SurveillanceScanner =
+        SurveillanceScanner(context)
+
+    @Provides
+    @Singleton
     fun provideSecurityScanManager(
         systemInfoScanner: SystemInfoScanner,
         appPermissionAuditor: AppPermissionAuditor,
@@ -106,6 +111,7 @@ object ScannerModule {
         kernelVisibilityScanner: KernelVisibilityScanner,
         backdoorScanner: BackdoorScanner,
         breachCheckScanner: BreachCheckScanner,
+        surveillanceScanner: SurveillanceScanner,
         debugLogger: DebugLogger
     ): SecurityScanManager = SecurityScanManager(
         systemInfoScanner,
@@ -121,6 +127,7 @@ object ScannerModule {
         kernelVisibilityScanner,
         backdoorScanner,
         breachCheckScanner,
+        surveillanceScanner,
         debugLogger
     )
 }
